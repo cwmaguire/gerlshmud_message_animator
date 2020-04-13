@@ -1,0 +1,3 @@
+GERLSHMUD Message Animator
+
+Animates message lifecycles in GERLSHMUD. It's too confusing to keep all the different overlapping messages straight in the logs. I want to see the messages as they travel from one node to another.

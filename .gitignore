@@ -1,0 +1,7 @@
+.erlang.mk/
+deps/
+
+js_util.js
+animate.js
+lists.js
+test.js

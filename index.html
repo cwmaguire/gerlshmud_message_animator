@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="js_util.js"></script>
+    <script src="lists.js"></script>
+    <script src="animate.js"></script>
+    <script src="test.js"></script>
+    <script src="graph.js"></script>
+    <style>
+      #canvas1{
+        position: fixed;
+        top: 40px;
+        left: 220px;
+        border: 1px solid yellow;
+      }
+      #controls{
+        position: fixed;
+        top: 40px;
+        left: 730px;
+        border: 1px solid orange;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="canvas1" width=500 height=400></canvas>
+    <p>
+      <input id="animateButton"
+             type="button"
+             value="Animate"
+             onclick="jsDoodle.reset_canvases(); clear_controls(); run_current_script();">
+      <input id="stopButton"
+             type="button"
+             value="Stop"
+             onclick="animation.cancel()">
+      <input id="frameLimit" type="text" size=10 value="5000">
+      <input id="fps" type="text" size=6 value="1">
+    </p>
+    <p><input id="t1" type=text style="width:200px"></p>
+    <p><input id="t2" type=text style="width:200px"></p>
+    <p><input id="t3" type=text style="width:200px"></p>
+    <p><input id="t4" type=text style="width:200px"></p>
+    <p><input id="t5" type=text style="width:200px"></p>
+    <p><input id="t6" type=text style="width:200px"></p>
+    <p><input id="t7" type=text style="width:200px"></p>
+    <p><input id="t8" type=text style="width:200px"></p>
+    <p><input id="t9" type=text style="width:200px"></p>
+    <p><input id="t10" type=text style="width:200px"></p>
+    <p><input id="t11" type=text style="width:200px"></p>
+    <p><input id="t12" type=text style="width:200px"></p>
+    <p id="results" style="width:400px; height:200px;"></p>
+
+    <span id="controls">
+      <!-- filled in with code by animations -->
+    </span>
+
+    <script>test();</script>
+  </body>
+</html>
