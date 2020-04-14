@@ -6,6 +6,8 @@
     <script src="animate.js"></script>
     <script src="test.js"></script>
     <script src="canvases.js"></script>
+    <script src="draw.js"></script>
+    <script src="controls.js"></script>
     <script src="graph.js"></script>
     <style>
       #canvas1{
@@ -22,7 +24,7 @@
       }
     </style>
   </head>
-  <body onload="canvases.save_canvas_states();">
+  <body onload="canvases.save_canvas_states(); add_controls();">
     <canvas id="canvas1" width=500 height=400></canvas>
     <p>
       <input id="animateButton"

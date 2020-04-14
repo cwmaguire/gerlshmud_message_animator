@@ -41,6 +41,7 @@ function init(){
 
   shapes = arrange_shapes(GRAPH, c.width, c.height);
 
+  map(draw_shape, shapes);
 
   // return state used for rendering
   return state;
@@ -182,95 +183,4 @@ function render({context: ctx, state: {h, w, frame, shapes}}){
     draw_shape(ctx, shape);
   }
   return {h: h, w: w, frame: frame, shapes: shapes};
-}
-
-function add_controls(w, h){
-  add_slider('vertex_radius', '0', '100', '5', VERTEX_RADIUS);
-  add_slider('edge_length', '0', '200', '5', EDGE_LENGTH);
-}
-
-function add_slider(name, min, max, step, value){
-  let controlSpan = elem('controls');
-  let slider = document.createElement('INPUT');
-  slider.type = 'range';
-  slider.id = name;
-  slider.name = name;
-  slider.value = value;
-  slider.min = min;
-  slider.max = max;
-  slider.step = step;
-
-  let label = document.createElement('LABEL');
-  label.id = name + '_label';
-  label.innerText = name;
-  label.for = name;
-
-  let text = document.createElement('INPUT');
-  text.type = 'text';
-  text.id = name + '_text';
-  text.name = name + '_text';
-  let sliderOnchange =
-    function(event){
-      text.value = event.target.value;
-    };
-  slider.addEventListener('change', sliderOnchange);
-
-  controlSpan.appendChild(slider);
-  controlSpan.appendChild(label);
-  controlSpan.appendChild(text);
-  controlSpan.appendChild(document.createElement('BR'));
-}
-
-function draw_shape(ctx, shape){
-  let debug = 'draw_shape()';
-  for(let prop in shape){
-    debug += ` shape.${prop}: ${shape[prop]}`;
-  }
-  console.log(debug);
-
-  if(shape.type == 'vertex'){
-    draw_vertex(ctx, shape);
-  }else if(shape.type == 'edge'){
-    draw_edge(ctx, shape);
-  }
-}
-
-function draw_vertex(ctx, vertex){
-  const radius = get_control_value('vertex_radius', 'int');
-  const rotation = 0;
-  const startAngle = 0;
-  const endAngle = Math.PI * 2;
-  const gradient = ctx.createLinearGradient(vertex.x - 20, vertex.y - 20, vertex.x + 20, vertex.y + 20);
-  gradient.addColorStop(0.0, 'black');
-  gradient.addColorStop(1.0, '#9090FF');
-
-  ctx.fillStyle = gradient;
-  ctx.beginPath();
-  ctx.ellipse(vertex.x, vertex.y, radius, radius, rotation, startAngle, endAngle);
-  ctx.closePath();
-  ctx.fill();
-
-  const textOffsetX = vertex.x - radius / 2;
-  const textOffsetY = vertex.y + radius / 2;
-  ctx.fillStyle = 'white';
-  ctx.font = '16pt serif';
-  ctx.fillText(vertex.id, textOffsetX, textOffsetY);
-}
-
-function draw_edge(ctx, edge){
-  ctx.strokeStyle = 'black';
-  ctx.beginPath();
-  ctx.moveTo(edge.x1, edge.y1);
-  ctx.lineTo(edge.x2, edge.y2);
-  ctx.closePath();
-  ctx.stroke();
-
-  const width = edge.x2 - edge.x1;
-  const textOffsetX = edge.x1 + width / 2 - 20;
-  const height = edge.y1 - edge.y2;
-  const textOffsetY = edge.y1 - height / 2;
-  //console.log(`Width: ${width}, textOffsetX: ${textOffsetX}, height: ${height}, textOffsetY: ${textOffsetY}`);
-  ctx.fillStyle = 'black';
-  ctx.font = '16pt serif';
-  ctx.fillText(edge.id, textOffsetX, textOffsetY);
 }
