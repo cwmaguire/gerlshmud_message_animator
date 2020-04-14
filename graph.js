@@ -65,44 +65,16 @@ function arrange_vector(graph, state, key){
   line = {type: 'line', p1: parentPoint, p2: point};
 
   connections = siblings_sorted_by_connections(graph, key);
-  // find sibling-to-sibling connections
-  //   e.g. [2-3, 3-2, 3-4, 5-6]
-  // take the next pair
-  //   add them to the list: [2, 3]
-  //   remove 2-3 and 3-2: [3-4, 5-6]
-  // recurse with [2, 3] and [3-4, 5-6]
-  // take the next pair ... Nope, that would give me [2, 3, 3, 4]
 
-  // Start with first element of first pair
-  // pairs: [2-3, 3-2, 3-4, 5-6]
-  // first element of first pair: 2
-  // call with (2, [], [2-3, 3-2, 3-4, 5-6])
-  // get connected element: 3
-  // remove connection to 3: [3-2, 3-4, 5-6]
-  // remove opposite connection: [3-4, 5-6]
-  // call with (3, [2], [3-4, 5-6]
-  // get connected element: 4
-  // remove connection to 4: [5-6]
-  // remove opposite connection: [5-6]
-  // call with (4, [2, 3], [5-6])
-  // get connected element: None
-  // get first element of next pair: 5
-  // call with (5, [2, 3, 4], [5-6])
-  // get connected element: 6
-  // remove connection to 6: []
-  // remove opposite connection: []
-  // call with (6, [2, 3, 4, 5], [])
-  // get connected element: None
-  // return [2, 3, 4, 5, 6]
-
-  return .reduce(arrangeVector, add_shapes(state, shapes))
+  return graph[key].reduce(arrangeVector, add_shapes(state, shapes))
 
 }
 
 function siblings_sorted_by_connections(graph, key){
   return unique_concat(sorted_connected_siblings(graph, key), siblings);
+}
 
-function sorted_connected_siblings(graph, key)
+function sorted_connected_siblings(graph, key){
   let reducer = function(conn, siblings){
     let connSiblings = conn.split('-').map(i => parseInt(i))
     return unique_concat(siblings, connSiblings);
@@ -115,7 +87,7 @@ function unique_concat(arr1, arr2){
 }
 
 function get_sibling_connections(graph, key){
-  let acc = {connections: new Set(), siblings = graph[key]};
+  let acc = {'connections': new Set(), 'siblings': graph[key]};
   return graph[key].reduce(add_sibling_connections, acc);
 }
 
@@ -149,7 +121,7 @@ function point_from_angle(angle, start){
   let x, y, point
   if(angle == 0 || angle == Math.PI * 2){
     point = {x: start.x + EDGE_LENGTH, y: start.y}
-  if(angle < (Math.PI / 2)){
+  }else if(angle < (Math.PI / 2)){
     point = quad_1_point(angle, start);
   }else if(angle == Math.PI / 2){
     point = {x: start.x, y: start.y - EDGE_LENGTH}
