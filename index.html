@@ -5,6 +5,7 @@
     <script src="lists.js"></script>
     <script src="animate.js"></script>
     <script src="test.js"></script>
+    <script src="canvases.js"></script>
     <script src="graph.js"></script>
     <style>
       #canvas1{
@@ -21,13 +22,13 @@
       }
     </style>
   </head>
-  <body>
+  <body onload="canvases.save_canvas_states();">
     <canvas id="canvas1" width=500 height=400></canvas>
     <p>
       <input id="animateButton"
              type="button"
              value="Animate"
-             onclick="jsDoodle.reset_canvases(); clear_controls(); run_current_script();">
+             onclick="canvases.reset_canvases(); clear_controls(); run_current_script();">
       <input id="stopButton"
              type="button"
              value="Stop"
@@ -52,6 +53,7 @@
     <span id="controls">
       <!-- filled in with code by animations -->
     </span>
+    <canvas id="canvas2" width=500 height=400></canvas>
 
     <script>test();</script>
   </body>
