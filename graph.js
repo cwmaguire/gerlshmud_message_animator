@@ -30,6 +30,14 @@ function should_clear(){
   return true;
 }
 
+function animate(){
+  let fps = cast(elem('fps').value, 'int');
+  let frameLimit = cast(elem('frameLimit').value, 'int');
+  let shouldClear = true;
+  let initState = init();
+  animation.animate(initState, render, frameLimit, fps, shouldClear);
+}
+
 function init(){
   let c = elem('canvas1');
   let ctx = c.getContext('2d');

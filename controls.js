@@ -34,3 +34,12 @@ function add_slider(name, min, max, step, value){
   controlSpan.appendChild(text);
   controlSpan.appendChild(document.createElement('BR'));
 }
+
+function clear_controls(){
+  let span = elem('controls');
+
+  for(let i = span.children.length - 1; i >= 0 ; i--){
+    let child = span.children[i];
+    child.remove();
+  }
+}
