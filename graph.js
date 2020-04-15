@@ -47,36 +47,48 @@ function init(){
 
   add_controls(w, h);
 
-  shapes = arrange_shapes(GRAPH, c.width, c.height);
+  let shapes = arrange_shapes(GRAPH, c.width, c.height);
 
-  map(draw_shape, shapes);
+  //map(draw_shape, shapes);
 
   // return state used for rendering
   return state;
 }
 
 function arrange_shapes(graph, w, h){
-  let state = {parent: undefined,
-               angle: undefined,
-               remaining: {},
-               connections: {},
-               locations: {},
+  let state = {arranged: [],
+               unarranged: [],
                w: w,
                h: h}
 
+  let p = {x: Math.floor(w/2), y: Math.floor(h/2)}
   let firstKey = Object.keys(graph)[0];
-  arrange_vector(graph, state, firstKey);
+  arrange_vector(firstKey, p, graph, state);
 }
 
-function arrange_vector(graph, state, key){
-  let parentPoint = state.parent_point;
-  let point = locate_point(state, parentPoint);
-  let line = {type: 'line', p1: parentPoint, p2: point};
+function arrange_vector(key, p, graph, state){
 
-  let connections = siblings_sorted_by_connections(graph, key);
+  state.arranged.unshift({'key': key, 'point': p});
 
-  return graph[key].reduce(arrangeVector, add_shapes(state, shapes))
+  let connections = unarranged(siblings(graph, key), state.arranged);
+  connections.map(log_conn, connections);
+  //let lines = {type: 'line', p1: parentPoint, p2: point};
 
+  //return graph[key].reduce(arrangeVector, add_shapes(state, shapes))
+
+}
+
+function log_conn(conn){
+  console.log(`connection ${conn}`);
+}
+
+function siblings(graph, key){
+  return graph[key];
+}
+
+function unarranged(keys, arranged){
+  let f = k => !Object.keys(arranged).includes(k.toString());
+  return keys.filter(f);
 }
 
 function siblings_sorted_by_connections(graph, key){
@@ -118,9 +130,9 @@ function locate_point(state, parentPoint){
   if(state.angle == undefined){
     let x = state.w / 2;
     let y = state.y / 2;
-    let point = {type: 'point', x: x, y: y}
+    point = {type: 'point', x: x, y: y}
   }else{
-    let point = point_from_angle(state.angle, parentPoint);
+    point = point_from_angle(state.angle, parentPoint);
   }
 
   return point;
