@@ -69,11 +69,11 @@ function arrange_shapes(graph, w, h){
 }
 
 function arrange_vector(graph, state, key){
-  parentPoint = state.parent_point;
-  point = locate_point(state.angle, parentPoint);
-  line = {type: 'line', p1: parentPoint, p2: point};
+  let parentPoint = state.parent_point;
+  let point = locate_point(state, parentPoint);
+  let line = {type: 'line', p1: parentPoint, p2: point};
 
-  connections = siblings_sorted_by_connections(graph, key);
+  let connections = siblings_sorted_by_connections(graph, key);
 
   return graph[key].reduce(arrangeVector, add_shapes(state, shapes))
 
@@ -109,18 +109,18 @@ function add_sibling_connections(acc, key1){
 }
 
 function add_unique_conn_strings(acc, key1, key2){
-  [minKey, maxKey] = [key1, key2].sort();
+  let [minKey, maxKey] = [key1, key2].sort();
   return connections.add(`${minKey}-${maxKey}`);
 }
 
-function locate_point(angle, parentPoint){
+function locate_point(state, parentPoint){
   let point;
   if(state.angle == undefined){
-    x = state.w / 2;
-    y = state.y / 2;
-    point = {type: 'point', x: x, y: y}
+    let x = state.w / 2;
+    let y = state.y / 2;
+    let point = {type: 'point', x: x, y: y}
   }else{
-    point = point_from_angle(state.angle, parentPoint);
+    let point = point_from_angle(state.angle, parentPoint);
   }
 
   return point;
