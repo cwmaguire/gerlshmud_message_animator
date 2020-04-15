@@ -30,7 +30,7 @@ function should_clear(){
   return true;
 }
 
-function animate(){
+function animate_graph(){
   let fps = cast(elem('fps').value, 'int');
   let frameLimit = cast(elem('frameLimit').value, 'int');
   let shouldClear = true;
