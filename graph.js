@@ -52,7 +52,7 @@ function init(){
   //map(draw_shape, shapes);
 
   // return state used for rendering
-  return state;
+  return {h: h, w: w, frame: 0, shapes: shapes};
 }
 
 function arrange_shapes(graph, w, h){
@@ -63,7 +63,7 @@ function arrange_shapes(graph, w, h){
 
   let p = {x: Math.floor(w/2), y: Math.floor(h/2)}
   let firstKey = Object.keys(graph)[0];
-  arrange_vector(firstKey, p, graph, state);
+  return arrange_vector(firstKey, p, graph, state);
 }
 
 function arrange_vector(key, p, graph, state){
@@ -75,6 +75,7 @@ function arrange_vector(key, p, graph, state){
   //let lines = {type: 'line', p1: parentPoint, p2: point};
 
   //return graph[key].reduce(arrangeVector, add_shapes(state, shapes))
+  return [];
 
 }
 
