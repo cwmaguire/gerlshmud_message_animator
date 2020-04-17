@@ -72,7 +72,7 @@ function arrange_vectors(state, {key: key, p: p} = vertex){
   let w = state.w;
   let h = state.h;
 
-  state.arranged.unshift({'key': key, 'point': p});
+  state.arranged.unshift(key);
 
   let connections = unarranged(siblings(graph, key), state.arranged);
   connections.map(log_conn, connections);
