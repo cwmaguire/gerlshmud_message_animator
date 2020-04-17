@@ -57,7 +57,7 @@ function init(){
 
 function arrange_shapes(graph, w, h){
   let state = {arranged: [],
-               unarranged: [],
+               shapes: [],
                w: w,
                h: h}
 
