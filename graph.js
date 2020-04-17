@@ -62,9 +62,9 @@ function arrange_shapes(graph, w, h){
                h: h,
                graph: graph}
 
-  let p = {x: Math.floor(w/2), y: Math.floor(h/2)}
-  let firstKey = Object.keys(graph)[0];
-  return arrange_vector(firstKey, p, graph, state);
+  let p = {x: Math.floor(w/2), y: Math.floor(h/2)};
+  let firstVertex = {key: Object.keys(graph)[0], p: p};
+  return arrange_vectors(state, firstVertex);
 }
 
 function arrange_vectors(state, {key: key, p: p} = vertex){
