@@ -59,14 +59,18 @@ function arrange_shapes(graph, w, h){
   let state = {arranged: [],
                shapes: [],
                w: w,
-               h: h}
+               h: h,
+               graph: graph}
 
   let p = {x: Math.floor(w/2), y: Math.floor(h/2)}
   let firstKey = Object.keys(graph)[0];
   return arrange_vector(firstKey, p, graph, state);
 }
 
-function arrange_vector(key, p, graph, state){
+function arrange_vectors(state, {key: key, p: p} = vertex){
+  let graph = state.graph;
+  let w = state.w;
+  let h = state.h;
 
   state.arranged.unshift({'key': key, 'point': p});
 
