@@ -47,12 +47,12 @@ function init(){
 
   add_controls(w, h);
 
-  let shapes = arrange_shapes(GRAPH, c.width, c.height);
+  state = arrange_shapes(GRAPH, c.width, c.height);
 
   //map(draw_shape, shapes);
 
   // return state used for rendering
-  return {h: h, w: w, frame: 0, shapes: shapes};
+  return {h: h, w: w, frame: 0, shapes: state.shapes};
 }
 
 function arrange_shapes(graph, w, h){
