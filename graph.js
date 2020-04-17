@@ -81,6 +81,7 @@ function arrange_vectors(state, {key: key, p: p} = vertex){
   //return graph[key].reduce(arrangeVector, add_shapes(state, shapes))
   return [];
 
+  return keyPoints.reduce(arrange_vectors, state)
 }
 
 function log_conn(conn){
