@@ -77,6 +77,7 @@ function arrange_vectors(state, {key: key, p: p} = vertex){
   let connections = unarranged(siblings(graph, key), state.arranged);
   connections.map(log_conn, connections);
   //let lines = {type: 'line', p1: parentPoint, p2: point};
+  let keyPoints = map(key_point_fun(w, h), connections);
 
   //return graph[key].reduce(arrangeVector, add_shapes(state, shapes))
   return [];
@@ -84,6 +85,10 @@ function arrange_vectors(state, {key: key, p: p} = vertex){
   return keyPoints.reduce(arrange_vectors, state)
 }
 
+function key_point_fun(w, h){
+  return function(key){
+    return {key: key, p: {x: Math.random() * w, y: Math.random() * h}}
+  }
 function log_conn(conn){
   console.log(`connection ${conn}`);
 }
