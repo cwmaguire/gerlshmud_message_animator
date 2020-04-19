@@ -79,8 +79,8 @@ function arrange_vectors(state, {key: key, p: p} = vertex){
   //let lines = {type: 'line', p1: parentPoint, p2: point};
   let keyPoints = map(key_point_fun(w, h), connections);
 
-  //return graph[key].reduce(arrangeVector, add_shapes(state, shapes))
-  return [];
+  let shape = {type: 'vertex', x: p.x, y: p.y}
+  state.shapes.unshift(shape);
 
   return keyPoints.reduce(arrange_vectors, state)
 }
