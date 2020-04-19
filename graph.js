@@ -82,7 +82,8 @@ function arrange_verteces(state, {key: key, p0: p0, p1: p1} = vertex){
   let vertex = {type: 'vertex', id: key, x: p1.x, y: p1.y};
   state.shapes.unshift(vertex);
   if(p0 != undefined){
-    let edgeId = `(${p0.x}, ${p0.y})->(${p1.x}, ${p1.y})`;
+    //let edgeId = `(${p0.x}, ${p0.y})->(${p1.x}, ${p1.y})`;
+    let edgeId = '';
     let edge = {type: 'edge', id: edgeId, x1: p0.x, y1: p0.y, x2: p1.x, y2: p1.y};
     state.shapes.unshift(edge);
   }
