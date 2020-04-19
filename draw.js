@@ -30,7 +30,7 @@ function draw_vertex(ctx, vertex){
   const textOffsetX = vertex.x - radius / 2;
   const textOffsetY = vertex.y + radius / 2;
   ctx.fillStyle = 'white';
-  ctx.font = '16pt serif';
+  ctx.font = '8pt serif';
   ctx.fillText(vertex.id, textOffsetX, textOffsetY);
 }
 

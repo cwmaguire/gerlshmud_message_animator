@@ -79,7 +79,7 @@ function arrange_verteces(state, {key: key, p0: p0, p1: p1} = vertex){
 
   let keyPoints = map(key_point_fun(w, h, p1), connections);
 
-  let vertex = {type: 'vertex', x: p1.x, y: p1.y};
+  let vertex = {type: 'vertex', id: key, x: p1.x, y: p1.y};
   state.shapes.unshift(vertex);
   if(p0 != undefined){
     let edgeId = `(${p0.x}, ${p0.y})->(${p1.x}, ${p1.y})`;
