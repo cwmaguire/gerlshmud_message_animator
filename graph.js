@@ -73,13 +73,17 @@ function arrange_verteces(state, {key: key, p0: p0, p1: p1, angle: angle} = vert
   let w = state.w;
   let h = state.h;
 
+  console.log(`pre state arranged: ${state.arranged}`);
   state.arranged.unshift(key);
+  console.log(`post state arranged: ${state.arranged}`);
 
   let connections = unarranged(siblings(graph, key), state.arranged);
-  //connections.map(log_conn, connections);
+  //console.log(`Connections: ${connections}`);
 
   let angles;
-  if(angle == undefined){
+  if(connections.length == 0){
+    angles = [];
+  }else if(angle == undefined){
     let numAngles = connections.length;
     let spreadAngle = 2 * Math.PI / numAngles
     angles = map(i => i * spreadAngle, seq(numAngles))
@@ -92,27 +96,33 @@ function arrange_verteces(state, {key: key, p0: p0, p1: p1, angle: angle} = vert
     angles = map(i => startAngle + (i * spreadAngle), seq(0, numAngles - 1))
   }
 
-  console.log(angles);
+  //console.log(`Angles: ${angles}`);
 
   let connectionAngles = zip(connections, angles);
+  //console.log(`Connection angles: ${connectionAngles}`);
 
   let keyPoints = map(key_point_fun(w, h, p1), connectionAngles);
+  //for(let kp of keyPoints){
+    //console.log(`Key Point: ${kp.key} ${kp.p0.x} ${kp.p0.y} ${kp.p1.x} ${kp.p1.y} ${kp.angle}`);
+  //}
 
   let vertex = {type: 'vertex', id: key, x: p1.x, y: p1.y};
   state.shapes.unshift(vertex);
   if(p0 != undefined){
-    //let edgeId = `(${p0.x}, ${p0.y})->(${p1.x}, ${p1.y})`;
-    let edgeId = '';
+    let edgeId = ''; // `(${p0.x}, ${p0.y})->(${p1.x}, ${p1.y})`;
     let edge = {type: 'edge', id: edgeId, x1: p0.x, y1: p0.y, x2: p1.x, y2: p1.y};
     state.shapes.unshift(edge);
   }
 
+  console.log(`Key ${key}, Num keyPoints: ${keyPoints.length}`);
   return keyPoints.reduce(arrange_verteces, state)
 }
 
 function key_point_fun(w, h, p0){
   return function([key, angle]){
+    //console.log(`key_point_fun([${key}, ${angle}]) with ${w} ${h} and (${p0.x}, ${p0.y}) already bound`);
     let {x: x, y: y} = point_from_angle(angle, p0, EDGE_LENGTH);
+    //console.log(`point from angle: ${x} ${y}`);
     return {key: key, p0: p0, p1: {x: Math.floor(x), y: Math.floor(y)}, angle: angle}
   }
 }
@@ -121,16 +131,15 @@ function edge(p1, p2){
   return {type: 'edge', x1:p1.x, y1: p1.y, x2: p2.x, y2: p2,y};
 }
 
-function log_conn(conn){
-  console.log(`connection ${conn}`);
-}
-
 function siblings(graph, key){
   return graph[key];
 }
 
 function unarranged(keys, arranged){
+  //console.log(`unarranged(${keys}, ${arranged})`);
   let f = k => !Object.keys(arranged).includes(k.toString());
+  //let unarranged = keys.filter(f);
+  //console.log(`unarranged = ${unarranged}`);
   return keys.filter(f);
 }
 
