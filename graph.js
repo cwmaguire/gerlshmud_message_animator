@@ -89,6 +89,8 @@ function key_point_fun(w, h){
   return function(key){
     return {key: key, p: {x: Math.random() * w, y: Math.random() * h}}
   }
+}
+
 function log_conn(conn){
   console.log(`connection ${conn}`);
 }
