@@ -160,60 +160,6 @@ function locate_point(state, parentPoint){
   return point;
 }
 
-function point_from_angle(angle, start){
-  let x, y, point
-  if(angle == 0 || angle == Math.PI * 2){
-    point = {x: start.x + EDGE_LENGTH, y: start.y}
-  }else if(angle < (Math.PI / 2)){
-    point = quad_1_point(angle, start);
-  }else if(angle == Math.PI / 2){
-    point = {x: start.x, y: start.y - EDGE_LENGTH}
-  }else if(angle > (Math.PI / 2) && angle < Math.PI){
-    point = quad_2_point(angle, start);
-  }else if(angle == Math.PI){
-    point = {x: start.x - EDGE_LENGTH, y: start.y}
-  }else if(angle > Math.PI && angle < (3 / 2 * Math.PI)){
-    point = quad_3_point(angle, start);
-  }else if(angle == (3 / 2 * Math.PI)){
-    point = {x: start.x, y: start.y + EDGE_LENGTH}
-  }else if(angle > (3 / 2 * Math.PI) && angle < (2 * Math.PI)){
-    point = quad_4_point(angle, start);
-  }
-  return point;
-}
-
-function quad_1_point(angle, start){
-  xd = Math.cos(angle) * EDGE_LENGTH;
-  x = start.x + xd;
-  yd = Math.sin(angle) * EDGE_LENGTH;
-  y = start.y - yd;
-  return {x: x, y: y};
-}
-
-function quad_2_point(angle, start){
-  xd = Math.cos(Math.PI - angle) * EDGE_LENGTH;
-  x = start.x - xd;
-  yd = Math.sin(Math.PI - angle) * EDGE_LENGTH;
-  y = start.y - yd;
-  return {x: x, y: y};
-}
-
-function quad_3_point(angle, start){
-  xd = Math.cos(angle - Math.PI) * EDGE_LENGTH;
-  x = start.x - xd;
-  yd = Math.sin(angle - Math.PI) * EDGE_LENGTH;
-  y = start.y + yd;
-  return {x: x, y: y};
-}
-
-function quad_4_point(angle, start){
-  xd = Math.cos(2 * Math.PI - angle) * EDGE_LENGTH;
-  x = start.x + xd;
-  yd = Math.sin(2 * Math.PI - angle) * EDGE_LENGTH;
-  y = start.y + yd;
-  return {x: x, y: y};
-}
-
 function add_shapes(state, shapes){
   newShapes = state.shapes.concat(shapes);
   return {shapes: newShapes};
