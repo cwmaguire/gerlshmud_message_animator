@@ -3,7 +3,7 @@ function draw_shape(ctx, shape){
   for(let prop in shape){
     debug += ` shape.${prop}: ${shape[prop]}`;
   }
-  console.log(debug);
+  //console.log(debug);
 
   if(shape.type == 'vertex'){
     draw_vertex(ctx, shape);
