@@ -1,7 +1,8 @@
 "use strict";
 
 let VERTEX_RADIUS = 10;
-let EDGE_LENGTH = 100;
+let EDGE_LENGTH = 50;
+let CHILD_SPREAD = 0.75 * Math.PI;
 
 /*
  *     2
@@ -63,11 +64,11 @@ function arrange_shapes(graph, w, h){
                graph: graph}
 
   let p = {x: Math.floor(w/2), y: Math.floor(h/2)};
-  let firstVertex = {key: Object.keys(graph)[0], p0: undefined, p1: p};
+  let firstVertex = {key: Object.keys(graph)[0], p0: undefined, p1: p, angle: undefined};
   return arrange_verteces(state, firstVertex);
 }
 
-function arrange_verteces(state, {key: key, p0: p0, p1: p1} = vertex){
+function arrange_verteces(state, {key: key, p0: p0, p1: p1, angle: angle} = vertex){
   let graph = state.graph;
   let w = state.w;
   let h = state.h;
@@ -75,9 +76,27 @@ function arrange_verteces(state, {key: key, p0: p0, p1: p1} = vertex){
   state.arranged.unshift(key);
 
   let connections = unarranged(siblings(graph, key), state.arranged);
-  connections.map(log_conn, connections);
+  //connections.map(log_conn, connections);
 
-  let keyPoints = map(key_point_fun(w, h, p1), connections);
+  let angles;
+  if(angle == undefined){
+    let numAngles = connections.length;
+    let spreadAngle = 2 * Math.PI / numAngles
+    angles = map(i => i * spreadAngle, seq(numAngles))
+  }else if(connections.length == 1){
+    angles = [angle];
+  }else{
+    let numAngles = connections.length;
+    let halfSpread = CHILD_SPREAD / 2;
+    let startAngle = angle - halfSpread;
+    angles = map(i => startAngle + (i * spreadAngle), seq(0, numAngles - 1))
+  }
+
+  console.log(angles);
+
+  let connectionAngles = zip(connections, angles);
+
+  let keyPoints = map(key_point_fun(w, h, p1), connectionAngles);
 
   let vertex = {type: 'vertex', id: key, x: p1.x, y: p1.y};
   state.shapes.unshift(vertex);
@@ -92,8 +111,9 @@ function arrange_verteces(state, {key: key, p0: p0, p1: p1} = vertex){
 }
 
 function key_point_fun(w, h, p0){
-  return function(key){
-    return {key: key, p0: p0, p1: {x: Math.floor(Math.random() * w), y: Math.floor(Math.random() * h)}}
+  return function([key, angle]){
+    let {x: x, y: y} = point_from_angle(angle, p0, EDGE_LENGTH);
+    return {key: key, p0: p0, p1: {x: Math.floor(x), y: Math.floor(y)}, angle: angle}
   }
 }
 
