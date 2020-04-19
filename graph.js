@@ -63,11 +63,11 @@ function arrange_shapes(graph, w, h){
                graph: graph}
 
   let p = {x: Math.floor(w/2), y: Math.floor(h/2)};
-  let firstVertex = {key: Object.keys(graph)[0], p: p};
-  return arrange_vectors(state, firstVertex);
+  let firstVertex = {key: Object.keys(graph)[0], p0: undefined, p1: p};
+  return arrange_verteces(state, firstVertex);
 }
 
-function arrange_vectors(state, {key: key, p: p} = vertex){
+function arrange_verteces(state, {key: key, p0: p0, p1: p1} = vertex){
   let graph = state.graph;
   let w = state.w;
   let h = state.h;
@@ -82,12 +82,12 @@ function arrange_vectors(state, {key: key, p: p} = vertex){
   let shape = {type: 'vertex', x: p.x, y: p.y}
   state.shapes.unshift(shape);
 
-  return keyPoints.reduce(arrange_vectors, state)
+  return keyPoints.reduce(arrange_verteces, state)
 }
 
-function key_point_fun(w, h){
+function key_point_fun(w, h, p0){
   return function(key){
-    return {key: key, p: {x: Math.random() * w, y: Math.random() * h}}
+    return {key: key, p0: p0, p1: {x: Math.floor(Math.random() * w), y: Math.floor(Math.random() * h)}}
   }
 }
 
