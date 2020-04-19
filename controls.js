@@ -43,3 +43,9 @@ function clear_controls(){
     child.remove();
   }
 }
+
+function get_control_value(controlName, type){
+  let e = elem(controlName);
+  let value = cast(e.value, type);
+  return value;
+}
