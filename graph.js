@@ -205,8 +205,7 @@ function quad_4_point(angle, start){
 
 function add_shapes(state, shapes){
   newShapes = state.shapes.concat(shapes);
-  return {parent_point: state.parent_point,
-          shapes: newShapes};
+  return {shapes: newShapes};
 }
 
 function render({context: ctx, state: {h, w, frame, shapes}}){
