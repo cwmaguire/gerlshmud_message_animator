@@ -76,11 +76,16 @@ function arrange_verteces(state, {key: key, p0: p0, p1: p1} = vertex){
 
   let connections = unarranged(siblings(graph, key), state.arranged);
   connections.map(log_conn, connections);
-  //let lines = {type: 'line', p1: parentPoint, p2: point};
-  let keyPoints = map(key_point_fun(w, h), connections);
 
-  let shape = {type: 'vertex', x: p.x, y: p.y}
-  state.shapes.unshift(shape);
+  let keyPoints = map(key_point_fun(w, h, p1), connections);
+
+  let vertex = {type: 'vertex', x: p1.x, y: p1.y};
+  state.shapes.unshift(vertex);
+  if(p0 != undefined){
+    let edgeId = `(${p0.x}, ${p0.y})->(${p1.x}, ${p1.y})`;
+    let edge = {type: 'edge', id: edgeId, x1: p0.x, y1: p0.y, x2: p1.x, y2: p1.y};
+    state.shapes.unshift(edge);
+  }
 
   return keyPoints.reduce(arrange_verteces, state)
 }
@@ -89,6 +94,10 @@ function key_point_fun(w, h, p0){
   return function(key){
     return {key: key, p0: p0, p1: {x: Math.floor(Math.random() * w), y: Math.floor(Math.random() * h)}}
   }
+}
+
+function edge(p1, p2){
+  return {type: 'edge', x1:p1.x, y1: p1.y, x2: p2.x, y2: p2,y};
 }
 
 function log_conn(conn){

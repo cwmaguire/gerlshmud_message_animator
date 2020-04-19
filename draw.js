@@ -48,7 +48,7 @@ function draw_edge(ctx, edge){
   const textOffsetY = edge.y1 - height / 2;
   //console.log(`Width: ${width}, textOffsetX: ${textOffsetX}, height: ${height}, textOffsetY: ${textOffsetY}`);
   ctx.fillStyle = 'black';
-  ctx.font = '16pt serif';
+  ctx.font = '8pt serif';
   ctx.fillText(edge.id, textOffsetX, textOffsetY);
 }
 
