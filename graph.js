@@ -57,78 +57,76 @@ function init(){
 }
 
 function arrange_shapes(graph, w, h){
+  let p = {x: Math.floor(w/2), y: Math.floor(h/2)};
+  let firstVertex = {key: Object.keys(graph)[0], p0: undefined, p1: p, angle: undefined};
+
   let state = {arranged: [],
                shapes: [],
+               verteces: [firstVertex],
                w: w,
                h: h,
                graph: graph}
 
-  let p = {x: Math.floor(w/2), y: Math.floor(h/2)};
-  let firstVertex = {key: Object.keys(graph)[0], p0: undefined, p1: p, angle: undefined};
-  return arrange_verteces(state, firstVertex);
+  return arrange_shapes_(state, [firstVertex]);
 }
 
-function arrange_verteces(state, {key: key, p0: p0, p1: p1, angle: angle} = vertex){
-  let graph = state.graph;
-  let w = state.w;
-  let h = state.h;
+function arrange_shapes_(state, verteces){
+  if(verteces.length == 0){ return state; }
 
-  console.log(`pre state arranged: ${state.arranged}`);
+  let [{key: key, p0: p0, p1: p1, angle: angle}, ...rest] = verteces;
+
+  if(state.arranged.indexOf(key) > 0){ return state; }
+
   state.arranged.unshift(key);
-  console.log(`post state arranged: ${state.arranged}`);
 
-  let connections = unarranged(siblings(graph, key), state.arranged);
-  //console.log(`Connections: ${connections}`);
+  let childKeys = unarranged(siblings(state.graph, key), state.arranged);
+  let keyAngles = key_angles(childKeys, angle);
+  let childKeyAngles = zip(childKeys, keyAngles);
+  let vertexFun = vertex_fun(state.w, state.h, p1);
+  let newVerteces = map(vertexFun, childKeyAngles);
+  let remainingVerteces = rest.concat(newVerteces);
 
-  let angles;
-  if(connections.length == 0){
-    angles = [];
-  }else if(angle == undefined){
-    let numAngles = connections.length;
-    let spreadAngle = 2 * Math.PI / numAngles
-    angles = map(i => i * spreadAngle, seq(numAngles))
-  }else if(connections.length == 1){
-    angles = [angle];
-  }else{
-    let numAngles = connections.length;
-    let halfSpread = CHILD_SPREAD / 2;
-    let startAngle = angle - halfSpread;
-    angles = map(i => startAngle + (i * spreadAngle), seq(0, numAngles - 1))
-  }
-
-  //console.log(`Angles: ${angles}`);
-
-  let connectionAngles = zip(connections, angles);
-  //console.log(`Connection angles: ${connectionAngles}`);
-
-  let keyPoints = map(key_point_fun(w, h, p1), connectionAngles);
-  //for(let kp of keyPoints){
-    //console.log(`Key Point: ${kp.key} ${kp.p0.x} ${kp.p0.y} ${kp.p1.x} ${kp.p1.y} ${kp.angle}`);
-  //}
-
-  let vertex = {type: 'vertex', id: key, x: p1.x, y: p1.y};
-  state.shapes.unshift(vertex);
+  state.shapes.unshift(vertex_shape(key, p1));
   if(p0 != undefined){
-    let edgeId = ''; // `(${p0.x}, ${p0.y})->(${p1.x}, ${p1.y})`;
-    let edge = {type: 'edge', id: edgeId, x1: p0.x, y1: p0.y, x2: p1.x, y2: p1.y};
-    state.shapes.unshift(edge);
+    state.shapes.unshift(edge_shape(p0, p1));
   }
 
-  console.log(`Key ${key}, Num keyPoints: ${keyPoints.length}`);
-  return keyPoints.reduce(arrange_verteces, state)
+  return arrange_shapes_(state, remainingVerteces);
 }
 
-function key_point_fun(w, h, p0){
+function vertex_fun(w, h, p0){
   return function([key, angle]){
-    //console.log(`key_point_fun([${key}, ${angle}]) with ${w} ${h} and (${p0.x}, ${p0.y}) already bound`);
     let {x: x, y: y} = point_from_angle(angle, p0, EDGE_LENGTH);
-    //console.log(`point from angle: ${x} ${y}`);
     return {key: key, p0: p0, p1: {x: Math.floor(x), y: Math.floor(y)}, angle: angle}
   }
 }
 
-function edge(p1, p2){
-  return {type: 'edge', x1:p1.x, y1: p1.y, x2: p2.x, y2: p2,y};
+function key_angles(keys, inAngle){
+  let outAngles;
+  if(keys.length == 0){
+    outAngles = [];
+  }else if(inAngle == undefined){
+    let numAngles = keys.length;
+    let spreadAngle = 2 * Math.PI / numAngles
+    outAngles = map(i => i * spreadAngle, seq(numAngles))
+  }else if(keys.length == 1){
+    outAngles = [inAngle];
+  }else{
+    let numAngles = keys.length;
+    let halfSpread = CHILD_SPREAD / 2;
+    let startAngle = angle - halfSpread;
+    outAngles = map(i => startAngle + (i * spreadAngle), seq(0, numAngles - 1))
+  }
+  return outAngles;
+}
+
+function vertex_shape(key, p){
+  return {type: 'vertex', id: key, x: p.x, y: p.y};
+}
+
+function edge_shape(p1, p2){
+  let edgeId = ''; // `(${p0.x}, ${p0.y})->(${p1.x}, ${p1.y})`;
+  return {type: 'edge', id: edgeId, x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y};
 }
 
 function siblings(graph, key){
