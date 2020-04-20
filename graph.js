@@ -5,14 +5,16 @@ let EDGE_LENGTH = 50;
 let CHILD_SPREAD = 0.75 * Math.PI;
 
 /*
- *     2
- *    /
- *   /
- *  1--3
- *   \ |
- *    \|
- *     4
- *
+ *         3
+ *         |\
+ *         | \
+ *   5--4--1--2
+ *    \    |
+ *     \   |
+ *      \  |
+ *       \ |
+ *        \|
+ *         6
  */
 
 
@@ -60,7 +62,7 @@ function arrange_shapes(graph, w, h){
   let p = {x: Math.floor(w/2), y: Math.floor(h/2)};
   let firstVertex = {key: Object.keys(graph)[0], p0: undefined, p1: p, angle: undefined};
 
-  let state = {arranged: [],
+  let state = {arranged: [1],
                shapes: [],
                verteces: [firstVertex],
                w: w,
@@ -75,9 +77,7 @@ function arrange_shapes_(state, verteces){
 
   let [{key: key, p0: p0, p1: p1, angle: angle}, ...rest] = verteces;
 
-  if(state.arranged.indexOf(key) > 0){ return state; }
 
-  state.arranged.unshift(key);
 
   let childKeys = unarranged(siblings(state.graph, key), state.arranged);
   let keyAngles = key_angles(childKeys, angle);
@@ -86,9 +86,12 @@ function arrange_shapes_(state, verteces){
   let newVerteces = map(vertexFun, childKeyAngles);
   let remainingVerteces = rest.concat(newVerteces);
 
-  state.shapes.unshift(vertex_shape(key, p1));
-  if(p0 != undefined){
-    state.shapes.unshift(edge_shape(p0, p1));
+  if(state.arranged.indexOf(key) < 0){
+    state.arranged.unshift(key);
+    state.shapes.unshift(vertex_shape(key, p1));
+    if(p0 != undefined){
+      state.shapes.unshift(edge_shape(p0, p1));
+    }
   }
 
   return arrange_shapes_(state, remainingVerteces);
@@ -114,7 +117,8 @@ function key_angles(keys, inAngle){
   }else{
     let numAngles = keys.length;
     let halfSpread = CHILD_SPREAD / 2;
-    let startAngle = angle - halfSpread;
+    let startAngle = inAngle - halfSpread;
+    let spreadAngle = CHILD_SPREAD / numAngles
     outAngles = map(i => startAngle + (i * spreadAngle), seq(0, numAngles - 1))
   }
   return outAngles;
