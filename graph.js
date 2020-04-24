@@ -18,12 +18,12 @@ let CHILD_SPREAD = 0.75 * Math.PI;
  */
 
 
-const GRAPH = {1: [2, 3, 4, 6],
-               2: [1, 3],
-               3: [1, 2],
-               4: [1, 5],
-               5: [4, 6],
-               6: [1, 5]};
+const GRAPH = new Map([[1, [2, 3, 4, 6]],
+                       [2, [1, 3]],
+                       [3, [1, 2]],
+                       [4, [1, 5]],
+                       [5, [4, 6]],
+                       [6, [1, 5]]]);
 
 function scriptDesc(){
   return 'Draw a graph';
@@ -60,7 +60,7 @@ function init(){
 
 function arrange_shapes(graph, w, h){
   let p = {x: Math.floor(w/2), y: Math.floor(h/2)};
-  let firstVertex = {key: Object.keys(graph)[0], p0: undefined, p1: p, angle: undefined};
+  let firstKey = graph.keys().next().value;
 
   let state = {arranged: [1],
                shapes: [],
@@ -79,7 +79,7 @@ function arrange_shapes_(state, verteces){
   let [vertex, ...rest] = verteces;
   let {key: key, p0: p0, p1: p1, angle: angle} = vertex;
 
-  let childKeys = unarranged(siblings(state.graph, key), state.arranged);
+  let childKeys = unarranged(siblings(state.graph, key), state.arranged_keys);
   let keyAngles = key_angles(childKeys, angle);
   let childKeyAngles = zip(childKeys, keyAngles);
   let vertexFun = vertex_fun(state.w, state.h, p1);
@@ -139,14 +139,12 @@ function edge_shape(p1, p2){
 }
 
 function siblings(graph, key){
-  return graph[key];
+  return graph.get(key);
 }
 
 function unarranged(keys, arranged){
-  //console.log(`unarranged(${keys}, ${arranged})`);
-  let f = k => !Object.keys(arranged).includes(k.toString());
-  //let unarranged = keys.filter(f);
-  //console.log(`unarranged = ${unarranged}`);
+  console.log(`unarranged([${keys}], [${arranged}])`);
+  const f = k => !arranged.includes(k);
   return keys.filter(f);
 }
 
