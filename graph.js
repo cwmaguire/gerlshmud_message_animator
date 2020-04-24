@@ -73,11 +73,11 @@ function arrange_shapes(graph, w, h){
 }
 
 function arrange_shapes_(state, verteces){
+
   if(verteces.length == 0){ return state; }
 
-  let [{key: key, p0: p0, p1: p1, angle: angle}, ...rest] = verteces;
-
-
+  let [vertex, ...rest] = verteces;
+  let {key: key, p0: p0, p1: p1, angle: angle} = vertex;
 
   let childKeys = unarranged(siblings(state.graph, key), state.arranged);
   let keyAngles = key_angles(childKeys, angle);
