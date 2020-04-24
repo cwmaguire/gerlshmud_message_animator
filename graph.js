@@ -61,10 +61,12 @@ function init(){
 function arrange_shapes(graph, w, h){
   let p = {x: Math.floor(w/2), y: Math.floor(h/2)};
   let firstKey = graph.keys().next().value;
+  let firstVertex = {key: firstKey, p0: undefined, p1: p, angle: undefined};
 
-  let state = {arranged: [1],
+  let state = {arranged_keys: [],
+               arranged_connections: [],
                shapes: [],
-               verteces: [firstVertex],
+               key_vertex_points: new Map([[firstKey, p]]),
                w: w,
                h: h,
                graph: graph}
@@ -86,20 +88,39 @@ function arrange_shapes_(state, verteces){
   let newVerteces = map(vertexFun, childKeyAngles);
   let remainingVerteces = rest.concat(newVerteces);
 
-  if(state.arranged.indexOf(key) < 0){
-    state.arranged.unshift(key);
+  let newConnection = {p1: p0, p2: p1};
+  let vertexExists = state.arranged_keys.includes(key)
+  if(!vertexExists){
+    state.arranged_keys.unshift(key);
     state.shapes.unshift(vertex_shape(key, p1));
-    if(p0 != undefined){
-      state.shapes.unshift(edge_shape(p0, p1));
-    }
+    state.key_vertex_points.set(key, p1);
+  }else{
+    let preexistingVertexPoint = state.key_vertex_points.get(key);
+    newConnection = {p1: p0, p2: preexistingVertexPoint};
   }
 
+  if(p0 != undefined && !has_connection(state.arranged_connections, newConnection)){
+    state.arranged_connections.unshift(newConnection);
+    state.shapes.unshift(edge_shape(newConnection));
+  }
 
   console.log(`${key}: ${state.graph.get(key).join()}`);
   console.log(`${state_to_string(state)}`);
   console.log(`${verteces_to_strings(remainingVerteces)}`);
   console.log('');
+
   return arrange_shapes_(state, remainingVerteces);
+}
+
+function has_connection(connections, conn1){
+  function conns_equal(conn0){
+    return points_equal(conn0.p1, conn1.p1) && points_equal(conn0.p2, conn1.p2);
+  }
+  return connections.some(points_equal);
+}
+
+function points_equal(p1, p2){
+  return p1.x = p2.x && p1.y == p2.y;
 }
 
 function vertex_fun(w, h, p0){
@@ -133,7 +154,7 @@ function vertex_shape(key, p){
   return {type: 'vertex', id: key, x: p.x, y: p.y};
 }
 
-function edge_shape(p1, p2){
+function edge_shape({p1, p2}){
   let edgeId = ''; // `(${p0.x}, ${p0.y})->(${p1.x}, ${p1.y})`;
   return {type: 'edge', id: edgeId, x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y};
 }
