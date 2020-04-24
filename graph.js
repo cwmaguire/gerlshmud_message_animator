@@ -94,6 +94,11 @@ function arrange_shapes_(state, verteces){
     }
   }
 
+
+  console.log(`${key}: ${state.graph.get(key).join()}`);
+  console.log(`${state_to_string(state)}`);
+  console.log(`${verteces_to_strings(remainingVerteces)}`);
+  console.log('');
   return arrange_shapes_(state, remainingVerteces);
 }
 
@@ -202,4 +207,58 @@ function render({context: ctx, state: {h, w, frame, shapes}}){
     draw_shape(ctx, shape);
   }
   return {h: h, w: w, frame: frame, shapes: shapes};
+}
+
+function state_to_string(state){
+  let output = '';
+  let keys = state.arranged_keys.join();
+  let conns = state.arranged_connections.map(connection_to_string).join();
+  let shapes = state.shapes.map(shape_to_string).join();
+
+  return `k: [${keys}]
+c: [${conns}]
+s: [${shapes}]`;
+}
+
+function shape_to_string(shape){
+  if(shape.type === 'vertex'){
+    return vertex_shape_to_string(shape);
+  }else{
+    return edge_shape_to_string(shape);
+  }
+}
+
+function vertex_shape_to_string({id, x, y}){
+  let point = {x: x, y: y};
+  return `{vs:${id},${point_to_string(point)}}`;
+}
+
+function edge_shape_to_string({id, x1, y1, x2, y2}){
+  let point1s = point_to_string({x: x1, y: y1});
+  let point2s = point_to_string({x: x2, y: y2});
+  return `{es:'${id}',${point1s},${point2s}}`;
+}
+
+function verteces_to_strings(verteces){
+  return `vvs: ${verteces.map(vertex_to_string).join()}`;
+}
+
+function vertex_to_string({key, p0, p1, angle}){
+  let angleString = angle.toString().substr(0,5);
+  let p0s = '[undef]';
+  if(p0 != undefined){
+    p0s = point_to_string(p0);
+  }
+  let p1s = point_to_string(p1);
+  return `{v:${key},${p0s},${p1s},<${angleString}}`;
+}
+
+function connection_to_string({p1, p2}){
+  let p1String = point_to_string(p1);
+  let p2String = point_to_string(p2);
+  return `{${p1String}->${p2String}}`;
+}
+
+function point_to_string({x, y}){
+  return `[${x},${y}]`;
 }
