@@ -133,6 +133,7 @@ function points_equal(p1, p2){
 function vertex_fun(w, h, pkey, p0){
   return function([key, angle]){
     let {x: x, y: y} = point_from_angle(angle, p0, EDGE_LENGTH);
+    console.log(`vertex_fun(w: ${w}, h: ${h}, pkey: ${pkey}, p0.x: ${p0.x}, p0.y: ${p0.y}, key: ${key}, angle: ${angle}) -> x: ${x}, y: ${y}`);
     return {key: key, pkey: pkey, p0: p0, p1: {x: Math.floor(x), y: Math.floor(y)}, angle: angle}
   }
 }
