@@ -86,9 +86,13 @@ function arrange_shapes_(state, verteces){
   let [vertex, ...rest] = verteces;
   let {key: key, pkey: pkey, p0: p0, p1: p1, angle: angle} = vertex;
 
-  let childKeys = unarranged(siblings(state.graph, key), state.arranged_keys);
-  let keyAngles = key_angles(childKeys, angle);
-  let childKeyAngles = zip(childKeys, keyAngles);
+  let childKeys = siblings(state.graph, key);
+  let unarrangedKeys = unarranged(childKeys, state.arranged_keys);
+  let unqueuedKeys = unqueued(unarrangedKeys, rest);
+  let keyAngles = key_angles(unqueuedKeys, angle);
+  //console.log(`keyAngles([${unqueuedKeys.join()}], ${angle}): [${keyAngles.join()}]`);
+  let childKeyAngles = zip(unqueuedKeys, keyAngles);
+  //console.log(`childKeyAngles: [${childKeyAngles.join()}]`);
   let vertexFun = vertex_fun(state.w, state.h, key, p1);
   let newVerteces = map(vertexFun, childKeyAngles);
   let remainingVerteces = rest.concat(newVerteces);
@@ -176,6 +180,15 @@ function unarranged(keys, arranged){
   let unarrangedKeys = keys.filter(f);
   console.log(`unarranged(keys: [${keys}], arranged: [${arranged}]) = ${unarrangedKeys.join()}`);
   return unarrangedKeys;
+}
+
+function unqueued(keys, queuedVerteces){
+  const queuedKeys = queuedVerteces.map(v => v.key);
+  const f = (k => !queuedKeys.includes(k));
+  const unqueuedKeys = keys.filter(f);
+  console.log(`unqueuedK(keys: [${keys}], queued: [${queuedKeys}]) = ${unqueuedKeys.join()}`);
+  return unqueuedKeys;
+
 }
 
 function siblings_sorted_by_connections(graph, key){
