@@ -74,7 +74,7 @@ function arrange_shapes_(state, vertices){
 
   const [vertex, ...rest] = vertices;
   const {key: key, pkey: pkey, p0: p0, p1: p1, angle: angle} = vertex;
-  const nextvertices = next_vertices(key, p1, angle, rest, state);
+  const nextVertices = next_vertices(key, p1, angle, rest, state);
 
   let newConnection = {p1: p0, p2: p1, k1: pkey, k2: key};
   const vertexExists = state.arranged_keys.includes(key)
@@ -100,10 +100,10 @@ function arrange_shapes_(state, vertices){
 
   console.log(`${key} (${pkey}): ${state.graph.get(key).join()}`);
   console.log(`${state_to_string(state)}`);
-  console.log(`${vertices_to_strings(nextvertices)}`);
+  console.log(`${vertices_to_strings(nextVertices)}`);
   console.log('');
 
-  return arrange_shapes_(state, nextvertices);
+  return arrange_shapes_(state, nextVertices);
 }
 
 function next_vertices(key, point, angle, vertices, state){
@@ -113,9 +113,9 @@ function next_vertices(key, point, angle, vertices, state){
   const keyAngles = key_angles(unqueuedKeys, angle);
   const siblingKeyAngles = zip(unqueuedKeys, keyAngles);
   const vertexFun = vertex_fun(state.w, state.h, key, point);
-  const newvertices = map(vertexFun, siblingKeyAngles);
-  const nextvertices = vertices.concat(newvertices);
-  return nextvertices;
+  const newVertices = map(vertexFun, siblingKeyAngles);
+  const nextVertices = vertices.concat(newVertices);
+  return nextVertices;
 }
 
 function back_connections(key, state){
@@ -209,8 +209,8 @@ function unarranged(keys, arranged){
   return unarrangedKeys;
 }
 
-function unqueued(keys, queuedvertices){
-  const queuedKeys = queuedvertices.map(v => v.key);
+function unqueued(keys, queuedVertices){
+  const queuedKeys = queuedVertices.map(v => v.key);
   const f = (k => !queuedKeys.includes(k));
   const unqueuedKeys = keys.filter(f);
   return unqueuedKeys;
