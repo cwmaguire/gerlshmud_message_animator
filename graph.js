@@ -44,19 +44,28 @@ function init(){
 }
 
 function arrange_shapes(graph, w, h){
-  const p = {x: Math.floor(w/2), y: Math.floor(h/2)};
-  const firstKey = graph.keys().next().value;
-  const firstVertex = {key: firstKey, pkey: undefined, p0: undefined, p1: p, angle: undefined};
+  const xCenter = Math.floor(w/2);
+  const yCenter = Math.floor(h/2);
+  const p = {x: xCenter, y: yCenter};
+  const [originKey] = graph.keys();
+  const parentKey = undefined;
+  const parentPoint = undefined;
+  const parentAngle = undefined;
+  const originVertex = {key: originKey,
+                        pkey: parentKey,
+                        p0: parentPoint,
+                        p1: p,
+                        angle: parentAngle};
 
   const state = {arranged_keys: [],
                  arranged_connections: [],
                  shapes: [],
-                 key_vertex_points: new Map([[firstKey, p]]),
+                 key_vertex_points: new Map([[originKey, p]]),
                  w: w,
                  h: h,
                  graph: graph}
 
-  return arrange_shapes_(state, [firstVertex]);
+  return arrange_shapes_(state, [originVertex]);
 }
 
 function arrange_shapes_(state, vertices){
