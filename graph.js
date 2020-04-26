@@ -21,13 +21,13 @@ let CHILD_SPREAD = 0.75 * Math.PI;
 const GRAPH = new Map([[1, [2, 3, 4, 6]],
                        [2, [1, 3]],
                        [3, [1, 2, 7]],
-                       [4, [1, 5]],
-                       [5, [4, 6]],
+                       [4, [1, 5, 7]],
+                       [5, [4, 6, 7]],
                        [6, [1, 5]],
                        [7, [3, 4, 5, 8, 9, 10]],
-                       [8, []],
-                       [9, []],
-                       [10, [6]],
+                       [8, [7]],
+                       [9, [7]],
+                       [10, [6, 7]],
                       ]);
 
 function scriptDesc(){
@@ -83,45 +83,90 @@ function arrange_shapes_(state, verteces){
 
   if(verteces.length == 0){ return state; }
 
-  let [vertex, ...rest] = verteces;
-  let {key: key, pkey: pkey, p0: p0, p1: p1, angle: angle} = vertex;
-
-  let childKeys = siblings(state.graph, key);
-  let unarrangedKeys = unarranged(childKeys, state.arranged_keys);
-  let unqueuedKeys = unqueued(unarrangedKeys, rest);
-  let keyAngles = key_angles(unqueuedKeys, angle);
-  //console.log(`keyAngles([${unqueuedKeys.join()}], ${angle}): [${keyAngles.join()}]`);
-  let childKeyAngles = zip(unqueuedKeys, keyAngles);
-  //console.log(`childKeyAngles: [${childKeyAngles.join()}]`);
-  let vertexFun = vertex_fun(state.w, state.h, key, p1);
-  let newVerteces = map(vertexFun, childKeyAngles);
-  let remainingVerteces = rest.concat(newVerteces);
+  const [vertex, ...rest] = verteces;
+  const {key: key, pkey: pkey, p0: p0, p1: p1, angle: angle} = vertex;
+  const nextVerteces = next_verteces(key, p1, angle, rest, state);
 
   let newConnection = {p1: p0, p2: p1, k1: pkey, k2: key};
-  let vertexExists = state.arranged_keys.includes(key)
+  const vertexExists = state.arranged_keys.includes(key)
   if(!vertexExists){
     state.arranged_keys.unshift(key);
     state.shapes.unshift(vertex_shape(key, pkey, p1));
     state.key_vertex_points.set(key, p1);
   }else{
-    let preexistingVertexPoint = state.key_vertex_points.get(key);
+    const preexistingVertexPoint = state.key_vertex_points.get(key);
     newConnection = {p1: p0, p2: preexistingVertexPoint, k1: pkey, k2: key};
   }
 
-  let isOriginVertex = p0 == undefined;
-  let connectionExists = does_connection_exist(state.arranged_connections, newConnection);
+
+  const isOriginVertex = p0 == undefined;
+  const connectionExists = does_connection_exist(state.arranged_connections, newConnection);
+  console.log(`Connection exists: ${connection_to_string(newConnection)} = ${connectionExists}`);
   if(!isOriginVertex && !connectionExists){
     state.arranged_connections.unshift(newConnection);
     state.shapes.unshift(edge_shape(newConnection));
   }
 
+  const backConnections = back_connections(key, state);
+  console.log(`Back connections: [${backConnections.map(connection_to_string).join()}]`);
+  const backShapes = backConnections.map(edge_shape);
+  state.shapes = backShapes.concat(state.shapes);
+
   console.log(`${key} (${pkey}): ${state.graph.get(key).join()}`);
   console.log(`${state_to_string(state)}`);
-  console.log(`${verteces_to_strings(remainingVerteces)}`);
+  console.log(`${verteces_to_strings(nextVerteces)}`);
   console.log('');
 
-  return arrange_shapes_(state, remainingVerteces);
+  return arrange_shapes_(state, nextVerteces);
 }
+
+function next_verteces(key, point, angle, verteces, state){
+  const siblingKeys = siblings(state.graph, key);
+  const unarrangedKeys = unarranged(siblingKeys, state.arranged_keys);
+  const unqueuedKeys = unqueued(unarrangedKeys, verteces);
+  const keyAngles = key_angles(unqueuedKeys, angle);
+  //console.log(`keyAngles([${unqueuedKeys.join()}], ${angle}): [${keyAngles.join()}]`);
+  const childKeyAngles = zip(unqueuedKeys, keyAngles);
+  //console.log(`childKeyAngles: [${childKeyAngles.join()}]`);
+  const vertexFun = vertex_fun(state.w, state.h, key, point);
+  const newVerteces = map(vertexFun, childKeyAngles);
+  const nextVerteces = verteces.concat(newVerteces);
+  return nextVerteces;
+
+}
+
+function back_connections(key, state){
+  const siblingKeys = siblings(state.graph, key);
+  console.log(`back_connections(${key}, state) siblingKeys = [${siblingKeys.join()}]`);
+  const arrangedKeys = arranged(siblingKeys, state.arranged_keys);
+  console.log(`back_connections(${key}, state) arrangedKeys = [${arrangedKeys.join()}]`);
+  function connection_(k2){
+    return connection(k2, key, state);
+  }
+  const connections = arrangedKeys.map(connection_);
+  console.log(`back_connections(${key}, state) connections = [${connections.map(connection_to_string).join()}]`);
+  function exists(c1) {
+    function connection_equals(c2){
+      let isEqual = c1.p1.x == c2.p1.x && c1.p1.y == c2.p1.y && c1.p2.x == c2.p2.x && c1.p2.y == c2.p2.y && c1.k1 == c2.k1 && c1.k2 == c2.k2;
+      console.log(`C's equal: ${connection_to_string(c1)}, ${connection_to_string(c2)} = ${isEqual}`);
+      return isEqual;
+    }
+    return !state.arranged_connections.some(connection_equals);
+  }
+  const newConnections = connections.filter(exists);
+  console.log(`back_connections: new connections: [${newConnections.map(connection_to_string).join()}]`);
+  return newConnections;
+}
+
+function connection(key1, key2, state){
+  const p1 = state.key_vertex_points.get(key1);
+  const p2 = state.key_vertex_points.get(key2);
+  const p1s = p1 == undefined ? '_' : point_to_string(p1);
+  const p2s = p2 == undefined ? '_' : point_to_string(p2);
+  console.log(`Connection(${key1}, ${key2}, ${p1s}, ${p2s})`);
+  return {p1: p1, p2: p2, k1: key1, k2: key2};
+}
+
 
 function does_connection_exist(connections, conn1){
   function conns_equal(conn0){
@@ -173,6 +218,13 @@ function edge_shape({p1, p2, k1, k2}){
 
 function siblings(graph, key){
   return graph.get(key);
+}
+
+function arranged(keys, arranged){
+  const f = k => arranged.includes(k);
+  let arrangedKeys = keys.filter(f);
+  //console.log(`arranged(keys: [${keys}], arranged: [${arranged}]) = ${arrangedKeys.join()}`);
+  return arrangedKeys;
 }
 
 function unarranged(keys, arranged){
@@ -253,12 +305,19 @@ function render({context: ctx, state: {h, w, frame, shapes}}){
 function state_to_string(state){
   let output = '';
   let keys = state.arranged_keys.join();
+  let kvps = [...state.key_vertex_points.entries()].map(kvp_to_string).join();
   let conns = state.arranged_connections.map(connection_to_string).join();
   let shapes = state.shapes.map(shape_to_string).join();
 
   return `k: [${keys}]
+p: [${kvps}]
 c: [${conns}]
 s: [${shapes}]`;
+}
+
+function kvp_to_string([key, point]){
+  const pointString = point == undefined ? '_' : point_to_string(point);
+  return `{${key}, ${pointString}}`;
 }
 
 function shape_to_string(shape){
@@ -294,10 +353,12 @@ function vertex_to_string({key, pkey, p0, p1, angle}){
   return `{v:${key},${pkey},${p0s},${p1s},<${angleString}}`;
 }
 
-function connection_to_string({p1, p2}){
-  let p1String = point_to_string(p1);
-  let p2String = point_to_string(p2);
-  return `{${p1String}->${p2String}}`;
+function connection_to_string({p1, p2, k1, k2}){
+  let k1s = k1 == undefined ? '_' : k1;
+  let k2s = k2 == undefined ? '_' : k2;
+  let p1s = p1 == undefined ? '_' : point_to_string(p1);
+  let p2s = p2 == undefined ? '_' : point_to_string(p2);
+  return `{${k1s}->${k2s}|${p1s}->${p2s}}`;
 }
 
 function point_to_string({x, y}){
