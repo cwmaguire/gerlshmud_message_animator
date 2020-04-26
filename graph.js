@@ -111,9 +111,9 @@ function next_vertices(key, point, angle, vertices, state){
   const unarrangedKeys = unarranged(siblingKeys, state.arranged_keys);
   const unqueuedKeys = unqueued(unarrangedKeys, vertices);
   const keyAngles = key_angles(unqueuedKeys, angle);
-  const childKeyAngles = zip(unqueuedKeys, keyAngles);
+  const siblingKeyAngles = zip(unqueuedKeys, keyAngles);
   const vertexFun = vertex_fun(state.w, state.h, key, point);
-  const newvertices = map(vertexFun, childKeyAngles);
+  const newvertices = map(vertexFun, siblingKeyAngles);
   const nextvertices = vertices.concat(newvertices);
   return nextvertices;
 }
