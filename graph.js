@@ -37,11 +37,9 @@ function init(){
   const ctx = c.getContext('2d');
   const h = c.height;
   const w = c.width;
-  let state = undefined;
-
+  const {shapes} = arrange_shapes(GRAPH, c.width, c.height);
+  const renderingState = {h: h, w: w, frame: 0, shapes: shapes};
   add_controls(w, h);
-  state = arrange_shapes(GRAPH, c.width, c.height);
-  const renderingState = {h: h, w: w, frame: 0, shapes: state.shapes};
   return renderingState;
 }
 
