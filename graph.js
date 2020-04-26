@@ -101,14 +101,14 @@ function arrange_shapes_(state, vertices){
 
   const isOriginVertex = p0 == undefined;
   const connectionExists = does_connection_exist(state.arranged_connections, newConnection);
-  console.log(`Connection exists: ${connection_to_string(newConnection)} = ${connectionExists}`);
+  //console.log(`Connection exists: ${connection_to_string(newConnection)} = ${connectionExists}`);
   if(!isOriginVertex && !connectionExists){
     state.arranged_connections.unshift(newConnection);
     state.shapes.unshift(edge_shape(newConnection));
   }
 
   const backConnections = back_connections(key, state);
-  console.log(`Back connections: [${backConnections.map(connection_to_string).join()}]`);
+  //console.log(`Back connections: [${backConnections.map(connection_to_string).join()}]`);
   const backShapes = backConnections.map(edge_shape);
   state.shapes = backShapes.concat(state.shapes);
 
@@ -137,24 +137,24 @@ function next_vertices(key, point, angle, vertices, state){
 
 function back_connections(key, state){
   const siblingKeys = siblings(state.graph, key);
-  console.log(`back_connections(${key}, state) siblingKeys = [${siblingKeys.join()}]`);
+  //console.log(`back_connections(${key}, state) siblingKeys = [${siblingKeys.join()}]`);
   const arrangedKeys = arranged(siblingKeys, state.arranged_keys);
-  console.log(`back_connections(${key}, state) arrangedKeys = [${arrangedKeys.join()}]`);
+  //console.log(`back_connections(${key}, state) arrangedKeys = [${arrangedKeys.join()}]`);
   function connection_(k2){
     return connection(k2, key, state);
   }
   const connections = arrangedKeys.map(connection_);
-  console.log(`back_connections(${key}, state) connections = [${connections.map(connection_to_string).join()}]`);
+  //console.log(`back_connections(${key}, state) connections = [${connections.map(connection_to_string).join()}]`);
   function exists(c1) {
     function connection_equals(c2){
       let isEqual = c1.p1.x == c2.p1.x && c1.p1.y == c2.p1.y && c1.p2.x == c2.p2.x && c1.p2.y == c2.p2.y && c1.k1 == c2.k1 && c1.k2 == c2.k2;
-      console.log(`C's equal: ${connection_to_string(c1)}, ${connection_to_string(c2)} = ${isEqual}`);
+      //console.log(`C's equal: ${connection_to_string(c1)}, ${connection_to_string(c2)} = ${isEqual}`);
       return isEqual;
     }
     return !state.arranged_connections.some(connection_equals);
   }
   const newConnections = connections.filter(exists);
-  console.log(`back_connections: new connections: [${newConnections.map(connection_to_string).join()}]`);
+  //console.log(`back_connections: new connections: [${newConnections.map(connection_to_string).join()}]`);
   return newConnections;
 }
 
@@ -163,7 +163,7 @@ function connection(key1, key2, state){
   const p2 = state.key_vertex_points.get(key2);
   const p1s = p1 == undefined ? '_' : point_to_string(p1);
   const p2s = p2 == undefined ? '_' : point_to_string(p2);
-  console.log(`Connection(${key1}, ${key2}, ${p1s}, ${p2s})`);
+  //console.log(`Connection(${key1}, ${key2}, ${p1s}, ${p2s})`);
   return {p1: p1, p2: p2, k1: key1, k2: key2};
 }
 
@@ -182,7 +182,7 @@ function points_equal(p1, p2){
 function vertex_fun(w, h, pkey, p0){
   return function([key, angle]){
     let {x: x, y: y} = point_from_angle(angle, p0, EDGE_LENGTH);
-    console.log(`vertex_fun(w: ${w}, h: ${h}, pkey: ${pkey}, p0.x: ${p0.x}, p0.y: ${p0.y}, key: ${key}, angle: ${angle}) -> x: ${x}, y: ${y}`);
+    //console.log(`vertex_fun(w: ${w}, h: ${h}, pkey: ${pkey}, p0.x: ${p0.x}, p0.y: ${p0.y}, key: ${key}, angle: ${angle}) -> x: ${x}, y: ${y}`);
     return {key: key, pkey: pkey, p0: p0, p1: {x: Math.floor(x), y: Math.floor(y)}, angle: angle}
   }
 }
@@ -230,7 +230,7 @@ function arranged(keys, arranged){
 function unarranged(keys, arranged){
   const f = k => !arranged.includes(k);
   let unarrangedKeys = keys.filter(f);
-  console.log(`unarranged(keys: [${keys}], arranged: [${arranged}]) = ${unarrangedKeys.join()}`);
+  //console.log(`unarranged(keys: [${keys}], arranged: [${arranged}]) = ${unarrangedKeys.join()}`);
   return unarrangedKeys;
 }
 
@@ -238,7 +238,7 @@ function unqueued(keys, queuedvertices){
   const queuedKeys = queuedvertices.map(v => v.key);
   const f = (k => !queuedKeys.includes(k));
   const unqueuedKeys = keys.filter(f);
-  console.log(`unqueuedK(keys: [${keys}], queued: [${queuedKeys}]) = ${unqueuedKeys.join()}`);
+  //console.log(`unqueuedK(keys: [${keys}], queued: [${queuedKeys}]) = ${unqueuedKeys.join()}`);
   return unqueuedKeys;
 
 }
