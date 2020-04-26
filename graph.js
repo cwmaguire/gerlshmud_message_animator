@@ -87,7 +87,6 @@ function arrange_shapes_(state, vertices){
     newConnection = {p1: p0, p2: preexistingVertexPoint, k1: pkey, k2: key};
   }
 
-
   const isOriginVertex = p0 == undefined;
   const connectionExists = does_connection_exist(state.arranged_connections, newConnection);
   if(!isOriginVertex && !connectionExists){
@@ -117,7 +116,6 @@ function next_vertices(key, point, angle, vertices, state){
   const newvertices = map(vertexFun, childKeyAngles);
   const nextvertices = vertices.concat(newvertices);
   return nextvertices;
-
 }
 
 function back_connections(key, state){
@@ -129,10 +127,8 @@ function back_connections(key, state){
   const connections = arrangedKeys.map(connection_);
   function exists(c1) {
     function connection_equals(c2){
-      return c1.p1.x == c2.p1.x &&
-             c1.p1.y == c2.p1.y &&
-             c1.p2.x == c2.p2.x &&
-             c1.p2.y == c2.p2.y &&
+      return points_equal(c1.p1, c2.p1) &&
+             points_equal(c1.p2, c2.p2) &&
              c1.k1 == c2.k1 &&
              c1.k2 == c2.k2;
     }
@@ -158,7 +154,7 @@ function does_connection_exist(connections, conn1){
 }
 
 function points_equal(p1, p2){
-  return p1.x = p2.x && p1.y == p2.y;
+  return p1.x == p2.x && p1.y == p2.y;
 }
 
 function vertex_fun(w, h, pkey, p0){
