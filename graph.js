@@ -79,13 +79,13 @@ function arrange_shapes(graph, w, h){
   return arrange_shapes_(state, [firstVertex]);
 }
 
-function arrange_shapes_(state, verteces){
+function arrange_shapes_(state, vertices){
 
-  if(verteces.length == 0){ return state; }
+  if(vertices.length == 0){ return state; }
 
-  const [vertex, ...rest] = verteces;
+  const [vertex, ...rest] = vertices;
   const {key: key, pkey: pkey, p0: p0, p1: p1, angle: angle} = vertex;
-  const nextVerteces = next_verteces(key, p1, angle, rest, state);
+  const nextvertices = next_vertices(key, p1, angle, rest, state);
 
   let newConnection = {p1: p0, p2: p1, k1: pkey, k2: key};
   const vertexExists = state.arranged_keys.includes(key)
@@ -114,24 +114,24 @@ function arrange_shapes_(state, verteces){
 
   console.log(`${key} (${pkey}): ${state.graph.get(key).join()}`);
   console.log(`${state_to_string(state)}`);
-  console.log(`${verteces_to_strings(nextVerteces)}`);
+  console.log(`${vertices_to_strings(nextvertices)}`);
   console.log('');
 
-  return arrange_shapes_(state, nextVerteces);
+  return arrange_shapes_(state, nextvertices);
 }
 
-function next_verteces(key, point, angle, verteces, state){
+function next_vertices(key, point, angle, vertices, state){
   const siblingKeys = siblings(state.graph, key);
   const unarrangedKeys = unarranged(siblingKeys, state.arranged_keys);
-  const unqueuedKeys = unqueued(unarrangedKeys, verteces);
+  const unqueuedKeys = unqueued(unarrangedKeys, vertices);
   const keyAngles = key_angles(unqueuedKeys, angle);
   //console.log(`keyAngles([${unqueuedKeys.join()}], ${angle}): [${keyAngles.join()}]`);
   const childKeyAngles = zip(unqueuedKeys, keyAngles);
   //console.log(`childKeyAngles: [${childKeyAngles.join()}]`);
   const vertexFun = vertex_fun(state.w, state.h, key, point);
-  const newVerteces = map(vertexFun, childKeyAngles);
-  const nextVerteces = verteces.concat(newVerteces);
-  return nextVerteces;
+  const newvertices = map(vertexFun, childKeyAngles);
+  const nextvertices = vertices.concat(newvertices);
+  return nextvertices;
 
 }
 
@@ -234,8 +234,8 @@ function unarranged(keys, arranged){
   return unarrangedKeys;
 }
 
-function unqueued(keys, queuedVerteces){
-  const queuedKeys = queuedVerteces.map(v => v.key);
+function unqueued(keys, queuedvertices){
+  const queuedKeys = queuedvertices.map(v => v.key);
   const f = (k => !queuedKeys.includes(k));
   const unqueuedKeys = keys.filter(f);
   console.log(`unqueuedK(keys: [${keys}], queued: [${queuedKeys}]) = ${unqueuedKeys.join()}`);
@@ -339,8 +339,8 @@ function edge_shape_to_string({id, x1, y1, x2, y2, k1, k2}){
   return `{es:${k1}-${k2},${point1s},${point2s}}`;
 }
 
-function verteces_to_strings(verteces){
-  return `v: ${verteces.map(vertex_to_string).join()}`;
+function vertices_to_strings(vertices){
+  return `v: ${vertices.map(vertex_to_string).join()}`;
 }
 
 function vertex_to_string({key, pkey, p0, p1, angle}){
