@@ -270,10 +270,71 @@ function add_shapes(state, shapes){
 }
 
 function render({context: ctx, state: {h, w, frame, shapes}}){
-  for(const shape of shapes){
+  function spread_shapes_(shape){
+    spread_shapes(shapes, shape);
+  }
+  shapes.map(spread_shapes);
+  function draw_shape_(shape){
     draw_shape(ctx, shape);
   }
+  shapes.map(draw_shape_);
   return {h: h, w: w, frame: frame, shapes: shapes};
+}
+
+function is_edge({type}){
+  return type == 'edge';
+}
+
+function is_vertex({type}){
+  return type == 'vertex';
+}
+
+function spread_shapes(shapes, v1){
+  const edges = shapes.filter(is_edge);
+  const vertices = shapes.filter(is_vertex);
+
+  function overlaps(edge){
+    const otherVertices = subtract(vertices, [edge.k1, edge.k2]);
+    function does_overlap_(vertex){
+      return does_overlap(edge, vertex);
+    }
+    return {edge: edge, vertices: otherVertices.filter(does_overlap_);
+  }
+
+  const allOverlaps = edges.map(overlaps)
+
+  function vertex_ids(vertex){
+    return `${vertex.key}`;
+  }
+
+  function edge_overlaps_to_string({edge, vertices}){
+    return `${edge.k1}-${edge.k2}: [${vertices.map(vertex_ids).join()}]`;
+  }
+
+  console.log(`Overlaps: [${overlaps.map(edge_overlaps_to_string).join()}]`);
+
+}
+
+function flatten(arrayOfArrays){
+  return arrayOfArrays.reduce((a, acc) => acc.concat(a), []);
+}
+
+function does_overlap(v1, v3, v2){
+  const xd1 = v2.x - v1.x;
+  const yd1 = v1.y - v2.y;
+  const a = Math.atan(yd / xd);
+  const b = Math.PI / 2 - a;
+  const c = Math.sin(b) * VERTEX_RADIUS;
+  const d = Math.cos(b) * VERTEX_RADIUS;
+  const ex = v2.x - d;
+  const ey = v2.y - c;
+  const xdt = xd - d;
+  const ydt = yd = c;
+  const f = Math.atan(ydt / xdt);
+  const xdb;
+  const ydb;
+
+
 }
 
 function state_to_string(state){
