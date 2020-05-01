@@ -270,10 +270,14 @@ function add_shapes(state, shapes){
 }
 
 function render({context: ctx, state: {h, w, frame, shapes}}){
+  if(shapes instanceof Array){
+    console.log(`shapes (${shapes}) is an Array`);
+  }
+  console.log(`${shapes[0]}`);
   function spread_shapes_(shape){
     spread_shapes(shapes, shape);
   }
-  shapes.map(spread_shapes);
+  shapes.filter(({type}) => type == 'vertex').map(spread_shapes_);
   function draw_shape_(shape){
     draw_shape(ctx, shape);
   }
@@ -292,49 +296,195 @@ function is_vertex({type}){
 function spread_shapes(shapes, v1){
   const edges = shapes.filter(is_edge);
   const vertices = shapes.filter(is_vertex);
+  var i = 1;
 
   function overlaps(edge){
-    const otherVertices = subtract(vertices, [edge.k1, edge.k2]);
+    console.log(`Overlaps ${i} ${edge.id}\n\n`);
+    i += 1;
+
+    const otherVertices = subtract_vertices_by_id(vertices, [edge.k1, edge.k2]);
+    console.log(`${otherVertices.map(x => x.id)}`);
+    const [v1] = vertices.filter(({id}) => id == edge.k1);
+    const [v2] = vertices.filter(({id}) => id == edge.k2);
+
     function does_overlap_(vertex){
-      return does_overlap(edge, vertex);
+      return does_overlap(v1, v2, vertex);
     }
-    return {edge: edge, vertices: otherVertices.filter(does_overlap_);
+    return {edge: edge, vertices: otherVertices.filter(does_overlap_)};
   }
 
   const allOverlaps = edges.map(overlaps)
+  console.log(`Overlaps: [${allOverlaps.map(edge_overlaps_to_string).join()}]`);
+}
 
-  function vertex_ids(vertex){
-    return `${vertex.key}`;
-  }
+function edge_overlaps_to_string({edge: {k1, k2}, vertices}){
+  return `${k1}-${k2}: [${vertices.map(({id}) => id).join()}]`;
+}
 
-  function edge_overlaps_to_string({edge, vertices}){
-    return `${edge.k1}-${edge.k2}: [${vertices.map(vertex_ids).join()}]`;
-  }
-
-  console.log(`Overlaps: [${overlaps.map(edge_overlaps_to_string).join()}]`);
-
+function subtract_vertices_by_id(vs, ids){
+  return vs.filter(({id}) => !ids.includes(id));
 }
 
 function flatten(arrayOfArrays){
   return arrayOfArrays.reduce((a, acc) => acc.concat(a), []);
 }
 
-function does_overlap(v1, v3, v2){
-  const xd1 = v2.x - v1.x;
-  const yd1 = v1.y - v2.y;
-  const a = Math.atan(yd / xd);
-  const b = Math.PI / 2 - a;
-  const c = Math.sin(b) * VERTEX_RADIUS;
-  const d = Math.cos(b) * VERTEX_RADIUS;
-  const ex = v2.x - d;
-  const ey = v2.y - c;
-  const xdt = xd - d;
-  const ydt = yd = c;
-  const f = Math.atan(ydt / xdt);
-  const xdb;
-  const ydb;
+function does_overlap(edgeVertex1, edgeVertex2, maybeOverlappedVertex){
+  const ev1 = edgeVertex1;
+  const ev2 = edgeVertex2;
+  const ov = maybeOverlappedVertex;
 
+  const r = VERTEX_RADIUS;
 
+  const SAME_Y = ev1.y == ov.y;
+  const SAME_X = ev1.x == ov.x;
+
+  const EV_ABOVE_OV = ev1.y < ov.y;
+  const EV_BELOW_OV = ev1.y > ov.y;
+  const EV_LEFT_OF_OV = ev1.x < ov.x;
+  const EV_RIGHT_OF_OV = ev1.x < ov.x;
+
+  const EV_DIRECTLY_ABOVE_OV = SAME_X && EV_ABOVE_OV;
+  const EV_DIRECTLY_BELOW_OV = SAME_X && EV_BELOW_OV;
+  const EV_DIRECTLY_LEFT_OF_OV = SAME_Y && EV_LEFT_OF_OV;
+  const EV_DIRECTLY_RIGHT_OF_OV = SAME_Y && EV_RIGHT_OF_OV;
+
+  const OV_IN_QUAD_1 = EV_BELOW_OV && EV_LEFT_OF_OV;
+  const OV_IN_QUAD_2 = EV_BELOW_OV && EV_RIGHT_OF_OV;
+  const OV_IN_QUAD_3 = EV_ABOVE_OV && EV_RIGHT_OF_OV;
+  const OV_IN_QUAD_4 = EV_ABOVE_OV && EV_LEFT_OF_OV;
+
+  const ABS_X = Math.abs(ev1.x - ov.x);
+  const ABS_Y = Math.abs(ev1.y - ov.y);
+
+  const ANGLE_EV_TO_OV = Math.atan(ABS_Y / ABS_X);
+
+  const OV_PLUS_R_XD = r * Math.sin(ANGLE_EV_TO_OV);
+  const OV_PLUS_R_YD = r * Math.cos(ANGLE_EV_TO_OV);
+
+  const OV_X_1 = ABS_X + OV_PLUS_R_XD;
+  const OV_Y_1 = ABS_Y - OV_PLUS_R_YD;
+  const OV_X_2 = ABS_X - OV_PLUS_R_XD;
+  const OV_Y_2 = ABS_Y + OV_PLUS_R_YD;
+
+  let angleOv1;
+  let angleOv2;
+
+  if(EV_DIRECTLY_BELOW_OV){
+      angleOv1 = Math.atan(ABS_Y / r);
+      angleOv2 = Math.atan(r / ABS_Y);
+  }else if(EV_DIRECTLY_ABOVE_OV){
+      angleOv1 = Math.atan(ABS_Y / r) + Math.PI;
+      angleOv2 = Math.atan(r / ABS_Y) + (Math.PI * 1.5);
+  }else if(EV_DIRECTLY_RIGHT_OF_OV){
+      angleOv1 = Math.atan(ABS_X / r) + (Math.PI / 2);
+      angleOv2 = Math.atan(r / ABS_X) + Math.PI;
+  }else if(EV_DIRECTLY_LEFT_OF_OV){
+      angleOv1 = Math.atan(ABS_X / r) + (Math.PI * 1.5);
+      angleOv2 = Math.atan(r / ABS_X) + Math.PI;
+  }else if(OV_IN_QUAD_1){
+    if(OV_Y_1 < 0){
+      angleOv1 = 2 * Math.PI - (Math.atan(-OV_Y_1 / OV_X_1));
+    }else{
+      angleOv1 = Math.atan(OV_Y_1 / OV_X_1);
+    }
+    if(OV_X_2 < 0){
+      angleOv2 = (Math.PI / 2) + (Math.atan(OV_Y_2 / -OV_X_2));
+    }else{
+      angleOv2 = Math.atan(OV_Y_2 / OV_X_2);
+    }
+  }else if(OV_IN_QUAD_2){
+    if(OV_Y_1 < 0){
+      angleOv1 = Math.PI + (Math.atan(-OV_Y_1 / OV_X_1));
+    }else{
+      angleOv1 = Math.atan(OV_Y_1 / OV_X_1);
+    }
+    if(OV_X_2 < 0){
+      angleOv2 = (Math.PI / 2) - (Math.atan(OV_Y_2 / -OV_X_2));
+    }else{
+      angleOv2 = Math.atan(OV_Y_2 / OV_X_2);
+    }
+  }else if(OV_IN_QUAD_3){
+    if(OV_Y_1 < 0){
+      angleOv1 = Math.PI - (Math.atan(-OV_Y_1 / OV_X_1));
+    }else{
+      angleOv1 = Math.atan(OV_Y_1 / OV_X_1);
+    }
+    if(OV_X_2 < 0){
+      angleOv2 = (3 * Math.PI / 2) + (Math.atan(OV_Y_2 / -OV_X_2));
+    }else{
+      angleOv2 = Math.atan(OV_Y_2 / OV_X_2);
+    }
+  }else if(OV_IN_QUAD_4){
+    if(OV_Y_1 < 0){
+      angleOv1 = Math.atan(-OV_Y_1 / OV_X_1);
+    }else{
+      angleOv1 = Math.atan(OV_Y_1 / OV_X_1);
+    }
+    if(OV_X_2 < 0){
+      angleOv2 = (3 * Math.PI / 2) - (Math.atan(OV_Y_2 / -OV_X_2));
+    }else{
+      angleOv2 = Math.atan(OV_Y_2 / OV_X_2);
+    }
+  }
+
+  let angleEv1Ev2;
+
+  const ABS_EV2_X = Math.abs(ev1.x - ev2.x);
+  const ABS_EV2_Y = Math.abs(ev1.y - ev2.y);
+
+  const SAME_EV1_EV2_X = ev1.x == ev2.x;
+  const SAME_EV1_EV2_Y = ev1.y == ev2.y;
+
+  const EV1_ABOVE_EV2 = ev1.y < ev2.y;
+  const EV1_BELOW_EV2 = ev1.y > ev2.y;
+  const EV1_LEFT_OF_EV2 = ev1.x < ev2.x;
+  const EV1_RIGHT_OF_EV2 = ev1.x < ev2.x;
+
+  const EV1_DIRECTLY_ABOVE_EV2 = SAME_EV1_EV2_X && EV1_ABOVE_EV2;
+  const EV1_DIRECTLY_BELOW_EV2 = SAME_EV1_EV2_X && EV1_BELOW_EV2;
+  const EV1_DIRECTLY_LEFT_OF_EV2 = SAME_EV1_EV2_Y && EV1_LEFT_OF_EV2;
+  const EV1_DIRECTLY_RIGHT_OF_EV2 = SAME_EV1_EV2_Y && EV1_RIGHT_OF_EV2;
+
+  const ABS_EV1_EV2_X = Math.abs(ev1.x - ev2.x);
+  const ABS_EV1_EV2_Y = Math.abs(ev1.y - ev2.y);
+
+  const EV2_IN_QUAD_1 = EV1_BELOW_EV2 && EV1_LEFT_OF_EV2;
+  const EV2_IN_QUAD_2 = EV1_BELOW_EV2 && EV1_RIGHT_OF_EV2;
+  const EV2_IN_QUAD_3 = EV1_ABOVE_EV2 && EV1_RIGHT_OF_EV2;
+  const EV2_IN_QUAD_4 = EV1_ABOVE_EV2 && EV1_LEFT_OF_EV2;
+
+  if(EV1_DIRECTLY_ABOVE_EV2){
+    angleEv1Ev2 = Math.PI * 1.5;
+  }else if(EV1_DIRECTLY_BELOW_EV2){
+    angleEv1Ev2 = Math.PI / 2;
+  }else if(EV1_DIRECTLY_RIGHT_OF_EV2){
+    angleEv1Ev2 = Math.PI;
+  }else if(EV1_DIRECTLY_LEFT_OF_EV2){
+    angleEv1Ev2 = 0;
+  }else if(EV2_IN_QUAD_1){
+    angleEv1Ev2 = Math.atan(ABS_EV2_Y / ABS_EV2_X);
+  }else if(EV2_IN_QUAD_2){
+    angleEv1Ev2 = Math.PI - Math.atan(ABS_EV2_Y / ABS_EV2_X);
+  }else if(EV2_IN_QUAD_3){
+    angleEv1Ev2 = Math.PI + Math.atan(ABS_EV2_Y / ABS_EV2_X);
+  }else if(EV2_IN_QUAD_4){
+    angleEv1Ev2 = (2 * Math.PI) - Math.atan(ABS_EV2_Y / ABS_EV2_X);
+  }
+
+  var isOverlapping;
+
+  if(Math.abs(angleOv1 - angleOv2) > Math.PI){
+    isOverlapping = angleEv1Ev2 < angleOv2 || angleEv1Ev2 > angleOv1;
+  }else{
+    isOverlapping = angleOv1 < angleEv1Ev2 && angleOv2 > angleEv1Ev2;
+  }
+
+  return isOverlapping;
+}
+
+function point_delta({x: x1, y: y1}, {x: x2, y: y2}){
+  return [Math.abs(x1 - x2), Math.abs(y1 - y2)];
 }
 
 function state_to_string(state){
