@@ -336,18 +336,18 @@ function does_overlap(edgeVertex1, edgeVertex2, maybeOverlappedVertex){
     return false;
   }
 
-  const SAME_Y = ev1.y == ov.y;
-  const SAME_X = ev1.x == ov.x;
+  const sameY = ev1.y == ov.y;
+  const sameX = ev1.x == ov.x;
 
   const evAboveOv = ev1.y < ov.y;
   const evBelowOv = ev1.y > ov.y;
   const evLeftOfOv = ev1.x < ov.x;
   const evRightOfOv = ev1.x > ov.x;
 
-  const evDirectlyAboveOv = SAME_X && evAboveOv;
-  const evDirectlyBelowOv = SAME_X && evBelowOv;
-  const evDirectlyLeftOfOv = SAME_Y && evLeftOfOv;
-  const evDirectlyRightOfOv = SAME_Y && evRightOfOv;
+  const evDirectlyAboveOv = sameX && evAboveOv;
+  const evDirectlyBelowOv = sameX && evBelowOv;
+  const evDirectlyLeftOfOv = sameY && evLeftOfOv;
+  const evDirectlyRightOfOv = sameY && evRightOfOv;
 
   const ovInQuad1 = evBelowOv && evLeftOfOv;
   const ovInQuad2 = evBelowOv && evRightOfOv;
@@ -374,17 +374,17 @@ function does_overlap(edgeVertex1, edgeVertex2, maybeOverlappedVertex){
   let angleOv2;
 
   if(evDirectlyBelowOv){
-      angleOv1 = baseAngleOv1;
-      angleOv2 = baseAngleOv2;
+      angleOv1 = Math.atan(absY / r);
+      angleOv2 = Math.atan(r / absY);
   }else if(evDirectlyAboveOv){
-      angleOv1 = baseAngleOv1 + Math.PI;
-      angleOv2 = baseAngleOv2 + (Math.PI * 1.5);
+      angleOv1 = Math.atan(absY / r) + Math.PI;
+      angleOv2 = Math.atan(r / absY) + (Math.PI * 1.5);
   }else if(evDirectlyRightOfOv){
-      angleOv1 = baseAngleOv1 + (Math.PI / 2);
-      angleOv2 = baseAngleOv2 + Math.PI;
+      angleOv1 = Math.atan(absX / r) + (Math.PI / 2);
+      angleOv2 = Math.atan(r / absX) + Math.PI;
   }else if(evDirectlyLeftOfOv){
-      angleOv1 = baseAngleOv1 + (Math.PI * 1.5);
-      angleOv2 = baseAngleOv2 + Math.PI;
+      angleOv1 = Math.atan(absX / r) + (Math.PI * 1.5);
+      angleOv2 = Math.atan(r / absX) + Math.PI;
   }else if(ovInQuad1){
     if(ovY1 < 0){
       angleOv1 = 2 * Math.PI - (Math.atan(-ovY1 / ovX1));
