@@ -296,25 +296,40 @@ function spread_shapes(shapes, v1){
   const edges = shapes.filter(is_edge);
   const v1Edges = edges.filter(({k1}) => k1 == v1.id)
   const vertices = shapes.filter(is_vertex);
-  var i = 1;
 
-  function calc_overlaps(edge){
+  function calc_overlap_moves(edge){
     const otherVertices = subtract_vertices_by_id(vertices, [edge.k1, edge.k2]);
     const [v1] = vertices.filter(({id}) => id == edge.k1);
     const [v2] = vertices.filter(({id}) => id == edge.k2);
 
-    function does_overlap_(vertex){
-      return does_overlap(v1, v2, vertex);
+    function v_id({id}){
+      return id;
     }
-    return {edge: edge, vertices: otherVertices.filter(does_overlap_)};
+    //console.log(`${v1.id}-${v2.id} other vertices: ${otherVertices.map(v_id)}`);
+
+    function calc_overlap_moves_(vertex){
+      return calc_overlap(v1, v2, vertex);
+    }
+
+    const moves = otherVertices.map(calc_overlap_moves_);
+    //console.log(`moves ${v1.id}-${v2.id}: ${moves.map(move_to_string)}`);
+
+    const validMoves = moves.filter(m => m != undefined);
+    //console.log(`valid moves ${v1.id}-${v2.id}: ${validMoves.map(move_to_string)}`);
+
+    return {edge: edge, moves: validMoves};
   }
 
-  const overlaps = v1Edges.map(calc_overlaps)
-  console.log(`Overlaps for ${v1.id}: [${overlaps.map(edge_overlaps_to_string).join(', ')}]`);
+  const moves = v1Edges.map(calc_overlap_moves);
+  console.log(`Overlaps for ${v1.id}: [${moves.map(edge_moves_to_string).join(', ')}]`);
 }
 
-function edge_overlaps_to_string({edge: {k1, k2}, vertices}){
-  return `${k1}-${k2}: [${vertices.map(({id}) => id).join()}]`;
+function move_to_string({v, angle}){
+  return `${v}_${angle}`;
+}
+
+function edge_moves_to_string({edge: {k1, k2}, moves}){
+  return `${k1}-${k2}: [${moves.map(move_to_string).join()}]`;
 }
 
 function subtract_vertices_by_id(vs, ids){
@@ -325,15 +340,17 @@ function flatten(arrayOfArrays){
   return arrayOfArrays.reduce((a, acc) => acc.concat(a), []);
 }
 
-function does_overlap(edgeVertex1, edgeVertex2, maybeOverlappedVertex){
+function calc_overlap(edgeVertex1, edgeVertex2, maybeOverlappedVertex){
   const ev1 = edgeVertex1;
   const ev2 = edgeVertex2;
   const ov = maybeOverlappedVertex;
+  //console.log(`calc_overlap(${ev1.id}, ${ev2.id}, ${ov.id})`);
   const r = VERTEX_RADIUS;
 
   const ovBounded = is_bounded(ev1, ev2, ov, r);
   if(!ovBounded){
-    return false;
+    //console.log('Not bounded');
+    return undefined;
   }
 
   const sameY = ev1.y == ov.y;
@@ -475,15 +492,64 @@ function does_overlap(edgeVertex1, edgeVertex2, maybeOverlappedVertex){
     angleEv1Ev2 = (2 * Math.PI) - Math.atan(absEv2Y / absEv2X);
   }
 
-  var isOverlapping;
+  let moveAngle;
+
 
   if(Math.abs(angleOv1 - angleOv2) > Math.PI){
-    isOverlapping = angleEv1Ev2 < angleOv2 || angleEv1Ev2 > angleOv1;
+    if(angleEv1Ev2 < angleOv2 || angleEv1Ev2 > angleOv1){
+      //console.log(`ev1: ${ev1.id}, ev2: ${ev2.id}, ov: ${ov.id}
+//angle ov1 = ${angleOv1}, angle ov2 = ${angleOv2}, angle ev1-ev2 = ${angleEv1Ev2}`);
+      //console.log('\n\nOVERLAP\n\n');
+      const adjustedOv1 = (angleOv1 + Math.PI / 2) % (2 * Math.PI);
+      const adjustedOv2 = angleOv2 + Math.PI / 2;
+      const adjustedEv1Ev2 = (angleEv1Ev2 + Math.PI / 2) % (2 * Math.PI);
+
+      if(adjustedOv2 - adjustedEv1Ev2 < adjustedEv1Ev2 - adjustedOv1){
+        moveAngle = (angleEv1Ev2 + Math.PI / 2) % (Math.PI * 2);
+      }else{
+        const maybeNegativeMoveAngle = (angleEv1Ev2 - Math.PI / 2);
+        if(maybeNegativeMoveAngle < 0){
+          moveAngle = Math.PI * 2 - maybeNegativeMoveAngle;
+        }else{
+          moveAngle = maybeNegativeMoveAngle;
+        }
+      }
+    }else{
+      //console.log(`returning undefined 1`);
+      return undefined;
+    }
+  }else if(angleOv1 < angleEv1Ev2 && angleOv2 > angleEv1Ev2){
+    //console.log(`ev1: ${ev1.id}, ev2: ${ev2.id}, ov: ${ov.id}
+//angle ov1 = ${angleOv1}, angle ov2 = ${angleOv2}, angle ev1-ev2 = ${angleEv1Ev2}`);
+    //console.log('\n\nOVERLAP\n\n');
+    if(angleOv1 - angleEv1Ev2 < angleEv1Ev2 - angleOv2){
+      moveAngle = (angleEv1Ev2 + Math.PI / 2) % (Math.PI * 2);
+    }else{
+      const maybeNegativeMoveAngle = (angleEv1Ev2 - Math.PI / 2);
+      if(maybeNegativeMoveAngle < 0){
+        moveAngle = Math.PI * 2 - maybeNegativeMoveAngle;
+      }else{
+        moveAngle = maybeNegativeMoveAngle;
+      }
+    }
   }else{
-    isOverlapping = angleOv1 < angleEv1Ev2 && angleOv2 > angleEv1Ev2;
+    //console.log(`returning undefined 2`);
+    return undefined;
   }
 
-  return isOverlapping;
+  const distEv1Ov = Math.hypot(ev1.x - ov.x, ev1.y - ov.y);
+  const distEv2Ov = Math.hypot(ev2.x - ov.x, ev2.y - ov.y);
+
+  let move;
+  if(distEv1Ov < distEv2Ov){
+    //console.log(`returning {v: ${ev1.id}, angle: ${moveAngle}}`);
+    move = {v: ev1.id, angle: moveAngle};
+  }else{
+    //console.log(`returning {v: ${ev2.id}, angle: ${moveAngle}}`);
+    move = {v: ev2.id, angle: moveAngle};
+  }
+
+  return move;
 }
 
 function point_delta({x: x1, y: y1}, {x: x2, y: y2}){
