@@ -3,6 +3,7 @@
 const VERTEX_RADIUS = 10;
 const EDGE_LENGTH = 50;
 const CHILD_SPREAD = 0.75 * Math.PI;
+const MOVE_AMOUNT = 20;
 
 const GRAPH = new Map([[1, [2, 3, 4, 6]],
                        [2, [1, 3]],
@@ -270,18 +271,15 @@ function add_shapes(state, shapes){
 }
 
 function render({context: ctx, state: {h, w, frame, shapes}}){
-  function spread_shapes_(shape){
-    spread_shapes(shapes, shape);
-  }
-
-  shapes.filter(({type}) => type == 'vertex').map(spread_shapes_);
+  const shapes2 = spread_shapes(shapes);
 
   function draw_shape_(shape){
     draw_shape(ctx, shape);
   }
 
-  shapes.map(draw_shape_);
-  return {h: h, w: w, frame: frame, shapes: shapes};
+  shapes2.filter(is_edge).map(draw_shape_);
+  shapes2.filter(is_vertex).map(draw_shape_);
+  return {h: h, w: w, frame: frame, shapes: shapes2};
 }
 
 function is_edge({type}){
@@ -292,7 +290,65 @@ function is_vertex({type}){
   return type == 'vertex';
 }
 
-function spread_shapes(shapes, v1){
+function spread_shapes(shapes){
+  const vertices = shapes.filter(({type}) => type == 'vertex');
+  const moves = flatten(vertices.map(v => get_moves(shapes, v)));
+  return moves.reduce(apply_move, shapes);
+}
+
+function apply_move(shapes, {edge, moves}){
+  const {shapes: shapes2} = moves.reduce(apply_edge_moves, {shapes: shapes, edge:edge});
+  return shapes2;
+}
+
+function apply_edge_moves({shapes, edge}, move){
+  const {v: vertexId, angle} = move;
+
+  const shapes2 = remove_edge(edge, shapes);
+  const {vertex, rest: shapes3} = remove_vertex(vertexId, shapes2);
+
+  const vertex2 = move_vertex(vertex, move);
+  const edge2 = move_edge(edge, vertex2);
+
+  return {shapes: shapes3.concat([vertex2, edge2]), edge: edge2};
+}
+
+function move_vertex({id, pkey, x, y}, {angle}){
+  const point = point_from_angle(angle, {x: x, y: y}, MOVE_AMOUNT);
+  return vertex_shape(id, pkey, point);
+}
+
+function move_edge({k1, k2, x1, x2, y1, y2}, {id, x, y}){
+  if(k1 == id){
+    return {type: 'edge', id: '', k1: k1, k2: k2, x1: x, y1: y, x2: x2, y2: y2};
+  }else{
+    return {type: 'edge', id: '', k1: k1, k2: k2, x1: x1, y1: y1, x2: x, y2: y};
+  }
+}
+
+function remove_edge({k1, k2}, shapes){
+  function is_not_matching_edge(shape){
+    return shape.type != 'edge' || shape.k1 != k1 || shape.k2 != k2;
+  }
+  const rest = shapes.filter(is_not_matching_edge);
+
+  return rest;
+}
+
+function remove_vertex(vertexId, shapes){
+  function is_matching_vertex(shape){
+    return shape.type == 'vertex' && shape.id == vertexId;
+  }
+  function is_not_matching_vertex(shape){
+    return !is_matching_vertex(shape);
+  }
+  const [vertex] = shapes.filter(is_matching_vertex);
+  const rest = shapes.filter(is_not_matching_vertex);
+
+  return {vertex: vertex, rest: rest};
+}
+
+function get_moves(shapes, v1){
   const edges = shapes.filter(is_edge);
   const v1Edges = edges.filter(({k1}) => k1 == v1.id)
   const vertices = shapes.filter(is_vertex);
@@ -322,6 +378,8 @@ function spread_shapes(shapes, v1){
 
   const moves = v1Edges.map(calc_overlap_moves);
   console.log(`Overlaps for ${v1.id}: [${moves.map(edge_moves_to_string).join(', ')}]`);
+
+  return moves;
 }
 
 function move_to_string({v, angle}){
