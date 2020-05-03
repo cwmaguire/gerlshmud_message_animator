@@ -1,10 +1,11 @@
 "use strict";
 
 const VERTEX_RADIUS = 10;
+const VERTEX_BUFFER = 1.4;
 const EDGE_LENGTH = 50;
 const CHILD_SPREAD = 0.75 * Math.PI;
 const MOVE_AMOUNT = 2;
-const ANGLE_BUFFER = 0.4;
+const ANGLE_BUFFER = 0.0;
 
 const GRAPH = new Map([[1, [2, 3, 4, 6]],
                        [2, [1, 3]],
@@ -317,13 +318,16 @@ function apply_edge_moves(shapes, move){
 
 function move_vertex({id, pkey, x, y}, {angle}){
   const point = point_from_angle(angle, {x: x, y: y}, MOVE_AMOUNT);
+  console.log(`Moving vertex ${id} from ${x},${y} by ${rnd(angle)},${MOVE_AMOUNT} to ${rnd(point.x)},${rnd(point.y)}`);
   return vertex_shape(id, pkey, point);
 }
 
-function move_edge({k1, k2, x1, x2, y1, y2}, {id, x, y}){
+function move_edge({k1, k2, x1, y1, x2, y2}, {id, x, y}){
   if(k1 == id){
+    console.log(`Moving ${k1} side of edge ${k1}-${k2} from ${rnd(x1)},${rnd(y1)} to ${rnd(x)},${rnd(y)}`);
     return {type: 'edge', id: '', k1: k1, k2: k2, x1: x, y1: y, x2: x2, y2: y2};
   }else{
+    console.log(`Moving ${k2} side of edge ${k1}-${k2} from ${rnd(x2)},${rnd(y2)} to ${rnd(x)},${rnd(y)}`);
     return {type: 'edge', id: '', k1: k1, k2: k2, x1: x1, y1: y1, x2: x, y2: y};
   }
 }
@@ -409,7 +413,7 @@ function calc_overlap(edgeVertex1, edgeVertex2, maybeOverlappedVertex){
   const ev2 = edgeVertex2;
   const ov = maybeOverlappedVertex;
   //console.log(`calc_overlap(${ev1.id}, ${ev2.id}, ${ov.id})`);
-  const r = VERTEX_RADIUS;
+  const r = VERTEX_RADIUS * VERTEX_BUFFER;
 
   const ovBounded = is_bounded(ev1, ev2, ov, r);
   if(!ovBounded){
@@ -584,7 +588,8 @@ function calc_overlap(edgeVertex1, edgeVertex2, maybeOverlappedVertex){
 
   let moveAngle;
 
-  if((ev1.id == 10 && ev2.id == 6) || (ev1.id == 6 && ev2.id == 10) || (ev1.id == 7)){
+  //if((ev1.id == 10 && ev2.id == 6) || (ev1.id == 6 && ev2.id == 10) || ev1.id == 4 || ev1.id == 5){
+  if(ev1.id == 6 && ev2.id == 5){
     console.log(`ev1: ${ev1.id}, ev2: ${ev2.id}, ov: ${ov.id}
 angle ov1 = ${angleOv1}, angle ov2 = ${angleOv2}, angle ev1-ev2 = ${angleEv1Ev2}
 ovInQuad1: ${ovInQuad1}, ovInQuad2: ${ovInQuad2}, ovInQuad3: ${ovInQuad3}, ovInQuad4: ${ovInQuad4}
@@ -619,9 +624,9 @@ evDirectlyAboveOv: ${evDirectlyAboveOv}, evDirectlyBelowOv: ${evDirectlyBelowOv}
       return undefined;
     }
   }else if((angleOv1 < angleEv1Ev2 && angleOv2 > angleEv1Ev2) || (angleOv1 > angleEv1Ev2 && angleOv2 < angleEv1Ev2)){
-    console.log(`ev1: ${ev1.id}, ev2: ${ev2.id}, ov: ${ov.id}
-angle ov1 = ${angleOv1}, angle ov2 = ${angleOv2}, angle ev1-ev2 = ${angleEv1Ev2}`);
-    console.log('\n\nOVERLAP\n\n');
+//     console.log(`ev1: ${ev1.id}, ev2: ${ev2.id}, ov: ${ov.id}
+// angle ov1 = ${angleOv1}, angle ov2 = ${angleOv2}, angle ev1-ev2 = ${angleEv1Ev2}`);
+//     console.log('\n\nOVERLAP\n\n');
     if(angleOv1 - angleEv1Ev2 < angleEv1Ev2 - angleOv2){
       moveAngle = (angleEv1Ev2 + Math.PI / 2) % (Math.PI * 2);
     }else{
