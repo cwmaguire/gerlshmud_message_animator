@@ -3,7 +3,8 @@
 const VERTEX_RADIUS = 10;
 const EDGE_LENGTH = 50;
 const CHILD_SPREAD = 0.75 * Math.PI;
-const MOVE_AMOUNT = 20;
+const MOVE_AMOUNT = 2;
+const ANGLE_BUFFER = 0.4;
 
 const GRAPH = new Map([[1, [2, 3, 4, 6]],
                        [2, [1, 3]],
@@ -442,10 +443,6 @@ function calc_overlap(edgeVertex1, edgeVertex2, maybeOverlappedVertex){
   const ovPlusRadiusXDelta = r * Math.sin(angleEvToOv);
   const ovPlusRadiusYDelta = r * Math.cos(angleEvToOv);
 
-  const ovX1 = absX + ovPlusRadiusXDelta;
-  const ovY1 = absY - ovPlusRadiusYDelta;
-  const ovX2 = absX - ovPlusRadiusXDelta;
-  const ovY2 = absY + ovPlusRadiusYDelta;
 
   const baseAngleOv1 = Math.atan(absY / r);
   const baseAngleOv2 = Math.atan(r / absY);
@@ -454,60 +451,90 @@ function calc_overlap(edgeVertex1, edgeVertex2, maybeOverlappedVertex){
   let angleOv2;
 
   if(evDirectlyBelowOv){
-      angleOv1 = Math.atan(absY / r);
-      angleOv2 = Math.atan(r / absY);
+      angleOv1 = (Math.PI / 2) - Math.atan(r / absY);
+      angleOv2 = (Math.PI / 2) + Math.atan(r / absY);
   }else if(evDirectlyAboveOv){
-      angleOv1 = Math.atan(absY / r) + Math.PI;
-      angleOv2 = Math.atan(r / absY) + (Math.PI * 1.5);
+      angleOv1 = (Math.PI * 1.5) - Math.atan(r / absY);
+      angleOv2 = (Math.PI * 1.5) + Math.atan(r / absY);
   }else if(evDirectlyRightOfOv){
-      angleOv1 = Math.atan(absX / r) + (Math.PI / 2);
-      angleOv2 = Math.atan(r / absX) + Math.PI;
+      angleOv1 = Math.PI - Math.atan(r / absX);
+      angleOv2 = Math.PI + Math.atan(r / absX);
   }else if(evDirectlyLeftOfOv){
-      angleOv1 = Math.atan(absX / r) + (Math.PI * 1.5);
-      angleOv2 = Math.atan(r / absX) + Math.PI;
+      angleOv1 = (Math.PI * 2) - Math.atan(r / absX);
+      angleOv2 = Math.atan(r / absX);
   }else if(ovInQuad1){
+
+    const ovX1 = absX + ovPlusRadiusXDelta;
+    const ovY1 = absY + ovPlusRadiusYDelta;
+    const ovX2 = absX - ovPlusRadiusXDelta;
+    const ovY2 = absY - ovPlusRadiusYDelta;
+
     if(ovY1 < 0){
-      angleOv1 = 2 * Math.PI - (Math.atan(-ovY1 / ovX1));
+      angleOv1 = 2 * Math.PI - (Math.atan(-ovY1 / ovX1)) - ANGLE_BUFFER;
     }else{
-      angleOv1 = Math.atan(ovY1 / ovX1);
+      angleOv1 = Math.atan(ovY1 / ovX1) - ANGLE_BUFFER;
     }
+
     if(ovX2 < 0){
-      angleOv2 = (Math.PI / 2) + (Math.atan(ovY2 / -ovX2));
+      angleOv2 = (Math.PI / 2) + (Math.atan(-ovX2 / ovY2)) + ANGLE_BUFFER;
     }else{
-      angleOv2 = Math.atan(ovY2 / ovX2);
+      angleOv2 = Math.atan(ovY2 / ovX2) + ANGLE_BUFFER;
     }
+
   }else if(ovInQuad2){
-    if(ovY1 < 0){
-      angleOv1 = Math.PI + (Math.atan(-ovY1 / ovX1));
+
+    const ovX1 = absX - ovPlusRadiusXDelta;
+    const ovY1 = absY + ovPlusRadiusYDelta;
+    const ovX2 = absX + ovPlusRadiusXDelta;
+    const ovY2 = absY - ovPlusRadiusYDelta;
+
+    if(ovX1 < 0){
+      angleOv1 = (Math.PI / 2) - (Math.atan(-ovX2 / ovY2)) - ANGLE_BUFFER;
     }else{
-      angleOv1 = Math.atan(ovY1 / ovX1);
+      angleOv1 = Math.PI - Math.atan(ovY2 / ovX2) - ANGLE_BUFFER;
     }
-    if(ovX2 < 0){
-      angleOv2 = (Math.PI / 2) - (Math.atan(ovY2 / -ovX2));
+
+    if(ovY2 < 0){
+      angleOv2 = (Math.PI) + (Math.atan(-ovY1 / ovX1)) + ANGLE_BUFFER;
     }else{
-      angleOv2 = Math.atan(ovY2 / ovX2);
+      angleOv2 = Math.PI - Math.atan(ovY1 / ovX1) + ANGLE_BUFFER;
     }
+
   }else if(ovInQuad3){
+
+    const ovX1 = absX + ovPlusRadiusXDelta;
+    const ovY1 = absY - ovPlusRadiusYDelta;
+    const ovX2 = absX - ovPlusRadiusXDelta;
+    const ovY2 = absY + ovPlusRadiusYDelta;
+
     if(ovY1 < 0){
-      angleOv1 = Math.PI - (Math.atan(-ovY1 / ovX1));
+      angleOv1 = Math.PI - (Math.atan(-ovY1 / ovX1)) - ANGLE_BUFFER;
     }else{
-      angleOv1 = Math.atan(ovY1 / ovX1);
+      angleOv1 = Math.PI + Math.atan(ovY1 / ovX1) - ANGLE_BUFFER;
     }
+
     if(ovX2 < 0){
-      angleOv2 = (3 * Math.PI / 2) + (Math.atan(ovY2 / -ovX2));
+      angleOv2 = (3 * Math.PI / 2) + (Math.atan(-ovX2 / ovY2)) + ANGLE_BUFFER;
     }else{
-      angleOv2 = Math.atan(ovY2 / ovX2);
+      angleOv2 = Math.PI + Math.atan(ovY2 / ovX2) + ANGLE_BUFFER;
     }
+
   }else if(ovInQuad4){
-    if(ovY1 < 0){
-      angleOv1 = Math.atan(-ovY1 / ovX1);
+
+    const ovX1 = absX - ovPlusRadiusXDelta;
+    const ovY1 = absY + ovPlusRadiusYDelta;
+    const ovX2 = absX + ovPlusRadiusXDelta;
+    const ovY2 = absY - ovPlusRadiusYDelta;
+
+    if(ovX1 < 0){
+      angleOv1 = (3 * Math.PI / 2) - Math.atan(-ovX1 / ovY1) - ANGLE_BUFFER;
     }else{
-      angleOv1 = Math.atan(ovY1 / ovX1);
+      angleOv1 = (3 * Math.PI / 2) + Math.atan(ovY1 / ovX1) - ANGLE_BUFFER;
     }
-    if(ovX2 < 0){
-      angleOv2 = (3 * Math.PI / 2) - (Math.atan(ovY2 / -ovX2));
+    if(ovY2 < 0){
+      angleOv2 = Math.atan(ovY2 / -ovX2) + ANGLE_BUFFER;
     }else{
-      angleOv2 = Math.atan(ovY2 / ovX2);
+      angleOv2 = (3 * Math.PI / 2) + Math.atan(ovY2 / ovX2) + ANGLE_BUFFER;
     }
   }
 
@@ -557,6 +584,16 @@ function calc_overlap(edgeVertex1, edgeVertex2, maybeOverlappedVertex){
 
   let moveAngle;
 
+  if((ev1.id == 10 && ev2.id == 6) || (ev1.id == 6 && ev2.id == 10) || (ev1.id == 7)){
+    console.log(`ev1: ${ev1.id}, ev2: ${ev2.id}, ov: ${ov.id}
+angle ov1 = ${angleOv1}, angle ov2 = ${angleOv2}, angle ev1-ev2 = ${angleEv1Ev2}
+ovInQuad1: ${ovInQuad1}, ovInQuad2: ${ovInQuad2}, ovInQuad3: ${ovInQuad3}, ovInQuad4: ${ovInQuad4}
+evAboveOv: ${evAboveOv}, evBelowOv: ${evBelowOv}, evLeftOfOv: ${evLeftOfOv}, evRightOfOv: ${evRightOfOv}
+sameX: ${sameX}, sameY: ${sameY}
+evDirectlyAboveOv: ${evDirectlyAboveOv}, evDirectlyBelowOv: ${evDirectlyBelowOv}, evDirectlyLeftOfOv: ${evDirectlyLeftOfOv}, evDirectlyRightOfOv: ${evDirectlyRightOfOv}
+`);
+  }
+
 
   if(Math.abs(angleOv1 - angleOv2) > Math.PI){
     if(angleEv1Ev2 < angleOv2 || angleEv1Ev2 > angleOv1){
@@ -581,10 +618,10 @@ function calc_overlap(edgeVertex1, edgeVertex2, maybeOverlappedVertex){
       //console.log(`returning undefined 1`);
       return undefined;
     }
-  }else if(angleOv1 < angleEv1Ev2 && angleOv2 > angleEv1Ev2){
-    //console.log(`ev1: ${ev1.id}, ev2: ${ev2.id}, ov: ${ov.id}
-//angle ov1 = ${angleOv1}, angle ov2 = ${angleOv2}, angle ev1-ev2 = ${angleEv1Ev2}`);
-    //console.log('\n\nOVERLAP\n\n');
+  }else if((angleOv1 < angleEv1Ev2 && angleOv2 > angleEv1Ev2) || (angleOv1 > angleEv1Ev2 && angleOv2 < angleEv1Ev2)){
+    console.log(`ev1: ${ev1.id}, ev2: ${ev2.id}, ov: ${ov.id}
+angle ov1 = ${angleOv1}, angle ov2 = ${angleOv2}, angle ev1-ev2 = ${angleEv1Ev2}`);
+    console.log('\n\nOVERLAP\n\n');
     if(angleOv1 - angleEv1Ev2 < angleEv1Ev2 - angleOv2){
       moveAngle = (angleEv1Ev2 + Math.PI / 2) % (Math.PI * 2);
     }else{
