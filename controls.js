@@ -1,6 +1,10 @@
 function add_controls(w, h){
-  add_slider('vertex_radius', '0', '100', '5', VERTEX_RADIUS);
+  add_slider('child_spread', '0', '6.56', '0.032', CHILD_SPREAD);
+  add_slider('vertex_radius', '0', '100', '1', VERTEX_RADIUS);
+  add_slider('vertex_buffer_ratio', '0', '200', '0.1', VERTEX_BUFFER_RATIO);
+  add_slider('angle_buffer', '0', '6.56', '0.032', ANGLE_BUFFER);
   add_slider('edge_length', '0', '200', '5', EDGE_LENGTH);
+  add_slider('move_amount', '1', '200', '1', MOVE_AMOUNT);
 }
 
 function add_slider(name, min, max, step, value){
@@ -27,6 +31,7 @@ function add_slider(name, min, max, step, value){
     function(event){
       text.value = event.target.value;
     };
+  text.value = value;
   slider.addEventListener('change', sliderOnchange);
 
   controlSpan.appendChild(slider);
@@ -44,7 +49,7 @@ function clear_controls(){
   }
 }
 
-function get_control_value(controlName, type){
+function get_control_value(controlName, type='int'){
   let e = elem(controlName);
   let value = cast(e.value, type);
   return value;

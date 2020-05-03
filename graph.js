@@ -1,7 +1,7 @@
 "use strict";
 
 const VERTEX_RADIUS = 10;
-const VERTEX_BUFFER = 1.4;
+const VERTEX_BUFFER_RATIO = 10;
 const EDGE_LENGTH = 50;
 const CHILD_SPREAD = 0.75 * Math.PI;
 const MOVE_AMOUNT = 2;
@@ -42,7 +42,6 @@ function init(){
   const w = c.width;
   const {shapes} = arrange_shapes(GRAPH, c.width, c.height);
   const renderingState = {h: h, w: w, frame: 0, shapes: shapes};
-  add_controls(w, h);
   return renderingState;
 }
 
@@ -162,7 +161,7 @@ function points_equal(p1, p2){
 
 function vertex_fun(w, h, pkey, p0){
   return function([key, angle]){
-    let {x: x, y: y} = point_from_angle(angle, p0, EDGE_LENGTH);
+    let {x: x, y: y} = point_from_angle(angle, p0, get_control_value('edge_length'));
     return {key: key, pkey: pkey, p0: p0, p1: {x: Math.floor(x), y: Math.floor(y)}, angle: angle}
   }
 }
@@ -178,10 +177,11 @@ function key_angles(keys, inAngle){
   }else if(keys.length == 1){
     outAngles = [inAngle];
   }else{
+    const childSpread = get_control_value('child_spread');
     const numAngles = keys.length;
-    const halfSpread = CHILD_SPREAD / 2;
+    const halfSpread = childSpread / 2;
     const startAngle = inAngle - halfSpread;
-    const spreadAngle = CHILD_SPREAD / numAngles
+    const spreadAngle = childSpread / numAngles
     outAngles = map(i => startAngle + (i * spreadAngle), seq(0, numAngles - 1))
   }
   return outAngles;
@@ -317,17 +317,18 @@ function apply_edge_moves(shapes, move){
 }
 
 function move_vertex({id, pkey, x, y}, {angle}){
-  const point = point_from_angle(angle, {x: x, y: y}, MOVE_AMOUNT);
-  console.log(`Moving vertex ${id} from ${x},${y} by ${rnd(angle)},${MOVE_AMOUNT} to ${rnd(point.x)},${rnd(point.y)}`);
+  const moveAmount = get_control_value('move_amount');
+  const point = point_from_angle(angle, {x: x, y: y}, moveAmount);
+  //console.log(`Moving vertex ${id} from ${x},${y} by ${rnd(angle)},${moveAmount} to ${rnd(point.x)},${rnd(point.y)}`);
   return vertex_shape(id, pkey, point);
 }
 
 function move_edge({k1, k2, x1, y1, x2, y2}, {id, x, y}){
   if(k1 == id){
-    console.log(`Moving ${k1} side of edge ${k1}-${k2} from ${rnd(x1)},${rnd(y1)} to ${rnd(x)},${rnd(y)}`);
+    //console.log(`Moving ${k1} side of edge ${k1}-${k2} from ${rnd(x1)},${rnd(y1)} to ${rnd(x)},${rnd(y)}`);
     return {type: 'edge', id: '', k1: k1, k2: k2, x1: x, y1: y, x2: x2, y2: y2};
   }else{
-    console.log(`Moving ${k2} side of edge ${k1}-${k2} from ${rnd(x2)},${rnd(y2)} to ${rnd(x)},${rnd(y)}`);
+    //console.log(`Moving ${k2} side of edge ${k1}-${k2} from ${rnd(x2)},${rnd(y2)} to ${rnd(x)},${rnd(y)}`);
     return {type: 'edge', id: '', k1: k1, k2: k2, x1: x1, y1: y1, x2: x, y2: y};
   }
 }
@@ -387,7 +388,7 @@ function get_moves(shapes, v1){
   }
 
   const moves = v1Edges.map(calc_overlap_moves);
-  console.log(`Overlaps for ${v1.id}: [${moves.map(edge_moves_to_string).join(', ')}]`);
+  //console.log(`Overlaps for ${v1.id}: [${moves.map(edge_moves_to_string).join(', ')}]`);
 
   return moves;
 }
@@ -409,15 +410,14 @@ function flatten(arrayOfArrays){
 }
 
 function calc_overlap(edgeVertex1, edgeVertex2, maybeOverlappedVertex){
+  const angleBuffer = get_control_value('angle_buffer');
   const ev1 = edgeVertex1;
   const ev2 = edgeVertex2;
   const ov = maybeOverlappedVertex;
-  //console.log(`calc_overlap(${ev1.id}, ${ev2.id}, ${ov.id})`);
-  const r = VERTEX_RADIUS * VERTEX_BUFFER;
+  const r = get_control_value('vertex_radius') * get_control_value('vertex_buffer_ratio');
 
   const ovBounded = is_bounded(ev1, ev2, ov, r);
   if(!ovBounded){
-    //console.log('Not bounded');
     return undefined;
   }
 
@@ -472,17 +472,18 @@ function calc_overlap(edgeVertex1, edgeVertex2, maybeOverlappedVertex){
     const ovY1 = absY + ovPlusRadiusYDelta;
     const ovX2 = absX - ovPlusRadiusXDelta;
     const ovY2 = absY - ovPlusRadiusYDelta;
+    const angleBuffer = get_control_value('angle_buffer');
 
     if(ovY1 < 0){
-      angleOv1 = 2 * Math.PI - (Math.atan(-ovY1 / ovX1)) - ANGLE_BUFFER;
+      angleOv1 = 2 * Math.PI - (Math.atan(-ovY1 / ovX1)) - angleBuffer;
     }else{
-      angleOv1 = Math.atan(ovY1 / ovX1) - ANGLE_BUFFER;
+      angleOv1 = Math.atan(ovY1 / ovX1) - angleBuffer;
     }
 
     if(ovX2 < 0){
-      angleOv2 = (Math.PI / 2) + (Math.atan(-ovX2 / ovY2)) + ANGLE_BUFFER;
+      angleOv2 = (Math.PI / 2) + (Math.atan(-ovX2 / ovY2)) + angleBuffer;
     }else{
-      angleOv2 = Math.atan(ovY2 / ovX2) + ANGLE_BUFFER;
+      angleOv2 = Math.atan(ovY2 / ovX2) + angleBuffer;
     }
 
   }else if(ovInQuad2){
@@ -493,15 +494,15 @@ function calc_overlap(edgeVertex1, edgeVertex2, maybeOverlappedVertex){
     const ovY2 = absY - ovPlusRadiusYDelta;
 
     if(ovX1 < 0){
-      angleOv1 = (Math.PI / 2) - (Math.atan(-ovX2 / ovY2)) - ANGLE_BUFFER;
+      angleOv1 = (Math.PI / 2) - (Math.atan(-ovX2 / ovY2)) - angleBuffer;
     }else{
-      angleOv1 = Math.PI - Math.atan(ovY2 / ovX2) - ANGLE_BUFFER;
+      angleOv1 = Math.PI - Math.atan(ovY2 / ovX2) - angleBuffer;
     }
 
     if(ovY2 < 0){
-      angleOv2 = (Math.PI) + (Math.atan(-ovY1 / ovX1)) + ANGLE_BUFFER;
+      angleOv2 = (Math.PI) + (Math.atan(-ovY1 / ovX1)) + angleBuffer;
     }else{
-      angleOv2 = Math.PI - Math.atan(ovY1 / ovX1) + ANGLE_BUFFER;
+      angleOv2 = Math.PI - Math.atan(ovY1 / ovX1) + angleBuffer;
     }
 
   }else if(ovInQuad3){
@@ -512,15 +513,15 @@ function calc_overlap(edgeVertex1, edgeVertex2, maybeOverlappedVertex){
     const ovY2 = absY + ovPlusRadiusYDelta;
 
     if(ovY1 < 0){
-      angleOv1 = Math.PI - (Math.atan(-ovY1 / ovX1)) - ANGLE_BUFFER;
+      angleOv1 = Math.PI - (Math.atan(-ovY1 / ovX1)) - angleBuffer;
     }else{
-      angleOv1 = Math.PI + Math.atan(ovY1 / ovX1) - ANGLE_BUFFER;
+      angleOv1 = Math.PI + Math.atan(ovY1 / ovX1) - angleBuffer;
     }
 
     if(ovX2 < 0){
-      angleOv2 = (3 * Math.PI / 2) + (Math.atan(-ovX2 / ovY2)) + ANGLE_BUFFER;
+      angleOv2 = (3 * Math.PI / 2) + (Math.atan(-ovX2 / ovY2)) + angleBuffer;
     }else{
-      angleOv2 = Math.PI + Math.atan(ovY2 / ovX2) + ANGLE_BUFFER;
+      angleOv2 = Math.PI + Math.atan(ovY2 / ovX2) + angleBuffer;
     }
 
   }else if(ovInQuad4){
@@ -531,14 +532,14 @@ function calc_overlap(edgeVertex1, edgeVertex2, maybeOverlappedVertex){
     const ovY2 = absY - ovPlusRadiusYDelta;
 
     if(ovX1 < 0){
-      angleOv1 = (3 * Math.PI / 2) - Math.atan(-ovX1 / ovY1) - ANGLE_BUFFER;
+      angleOv1 = (3 * Math.PI / 2) - Math.atan(-ovX1 / ovY1) - angleBuffer;
     }else{
-      angleOv1 = (3 * Math.PI / 2) + Math.atan(ovY1 / ovX1) - ANGLE_BUFFER;
+      angleOv1 = (3 * Math.PI / 2) + Math.atan(ovY1 / ovX1) - angleBuffer;
     }
     if(ovY2 < 0){
-      angleOv2 = Math.atan(ovY2 / -ovX2) + ANGLE_BUFFER;
+      angleOv2 = Math.atan(ovY2 / -ovX2) + angleBuffer;
     }else{
-      angleOv2 = (3 * Math.PI / 2) + Math.atan(ovY2 / ovX2) + ANGLE_BUFFER;
+      angleOv2 = (3 * Math.PI / 2) + Math.atan(ovY2 / ovX2) + angleBuffer;
     }
   }
 
@@ -589,15 +590,15 @@ function calc_overlap(edgeVertex1, edgeVertex2, maybeOverlappedVertex){
   let moveAngle;
 
   //if((ev1.id == 10 && ev2.id == 6) || (ev1.id == 6 && ev2.id == 10) || ev1.id == 4 || ev1.id == 5){
-  if(ev1.id == 6 && ev2.id == 5){
-    console.log(`ev1: ${ev1.id}, ev2: ${ev2.id}, ov: ${ov.id}
-angle ov1 = ${angleOv1}, angle ov2 = ${angleOv2}, angle ev1-ev2 = ${angleEv1Ev2}
-ovInQuad1: ${ovInQuad1}, ovInQuad2: ${ovInQuad2}, ovInQuad3: ${ovInQuad3}, ovInQuad4: ${ovInQuad4}
-evAboveOv: ${evAboveOv}, evBelowOv: ${evBelowOv}, evLeftOfOv: ${evLeftOfOv}, evRightOfOv: ${evRightOfOv}
-sameX: ${sameX}, sameY: ${sameY}
-evDirectlyAboveOv: ${evDirectlyAboveOv}, evDirectlyBelowOv: ${evDirectlyBelowOv}, evDirectlyLeftOfOv: ${evDirectlyLeftOfOv}, evDirectlyRightOfOv: ${evDirectlyRightOfOv}
-`);
-  }
+//   if(ev1.id == 6 && ev2.id == 5){
+//     console.log(`ev1: ${ev1.id}, ev2: ${ev2.id}, ov: ${ov.id}
+// angle ov1 = ${angleOv1}, angle ov2 = ${angleOv2}, angle ev1-ev2 = ${angleEv1Ev2}
+// ovInQuad1: ${ovInQuad1}, ovInQuad2: ${ovInQuad2}, ovInQuad3: ${ovInQuad3}, ovInQuad4: ${ovInQuad4}
+// evAboveOv: ${evAboveOv}, evBelowOv: ${evBelowOv}, evLeftOfOv: ${evLeftOfOv}, evRightOfOv: ${evRightOfOv}
+// sameX: ${sameX}, sameY: ${sameY}
+// evDirectlyAboveOv: ${evDirectlyAboveOv}, evDirectlyBelowOv: ${evDirectlyBelowOv}, evDirectlyLeftOfOv: ${evDirectlyLeftOfOv}, evDirectlyRightOfOv: ${evDirectlyRightOfOv}
+// `);
+//   }
 
 
   if(Math.abs(angleOv1 - angleOv2) > Math.PI){

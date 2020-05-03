@@ -17,6 +17,9 @@ function point_from_angle(angle, start, length){
   }else if(angle > (3 / 2 * Math.PI) && angle < (2 * Math.PI)){
     point = quad_4_point(angle, start, length);
   }
+  if(point == undefined){
+    console.log(`point_from_angle(${angle}, ${start}, ${length}) - point is undefined`);
+  }
   return point;
 }
 
