@@ -27,12 +27,17 @@ function add_slider(name, min, max, step, value){
   text.type = 'text';
   text.id = name + '_text';
   text.name = name + '_text';
-  let sliderOnchange =
+  let sliderOnChange =
     function(event){
       text.value = event.target.value;
     };
   text.value = value;
-  slider.addEventListener('change', sliderOnchange);
+  slider.addEventListener('change', sliderOnChange);
+  let textOnChange =
+    function(event){
+      slider.value = parseInt(text.value);
+    };
+  text.addEventListener('change', textOnChange);
 
   controlSpan.appendChild(slider);
   controlSpan.appendChild(label);
