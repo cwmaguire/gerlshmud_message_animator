@@ -297,20 +297,21 @@ function spread_shapes(shapes){
 }
 
 function apply_move(shapes, {edge, moves}){
-  const {shapes: shapes2} = moves.reduce(apply_edge_moves, {shapes: shapes, edge:edge});
+  const shapes2 = moves.reduce(apply_edge_moves, shapes);
   return shapes2;
 }
 
-function apply_edge_moves({shapes, edge}, move){
+function apply_edge_moves(shapes, move){
   const {v: vertexId, angle} = move;
 
-  const shapes2 = remove_edge(edge, shapes);
+  const {edges, rest: shapes2} = remove_edges(vertexId, shapes);
   const {vertex, rest: shapes3} = remove_vertex(vertexId, shapes2);
 
   const vertex2 = move_vertex(vertex, move);
-  const edge2 = move_edge(edge, vertex2);
+  const edges2 = edges.map(e => move_edge(e, vertex2));
+  const newShapes = edges2.concat([vertex2]);
 
-  return {shapes: shapes3.concat([vertex2, edge2]), edge: edge2};
+  return shapes3.concat(newShapes);
 }
 
 function move_vertex({id, pkey, x, y}, {angle}){
@@ -326,13 +327,17 @@ function move_edge({k1, k2, x1, x2, y1, y2}, {id, x, y}){
   }
 }
 
-function remove_edge({k1, k2}, shapes){
-  function is_not_matching_edge(shape){
-    return shape.type != 'edge' || shape.k1 != k1 || shape.k2 != k2;
+function remove_edges(vertexId, shapes){
+  function is_matching_edge(shape){
+    return shape.type == 'edge' && (shape.k1 == vertexId || shape.k2 == vertexId);
   }
+  function is_not_matching_edge(shape){
+    return !is_matching_edge(shape);
+  }
+  const edges = shapes.filter(is_matching_edge);
   const rest = shapes.filter(is_not_matching_edge);
 
-  return rest;
+  return {edges: edges, rest: rest};
 }
 
 function remove_vertex(vertexId, shapes){
