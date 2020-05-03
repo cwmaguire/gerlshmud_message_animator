@@ -14,7 +14,7 @@ function point_from_angle(angle, start, length){
     point = quad_3_point(angle, start, length);
   }else if(angle == (3 / 2 * Math.PI)){
     point = {x: start.x, y: start.y + length}
-  }else if(angle > (3 / 2 * Math.PI) && angle < (2 * Math.PI)){
+  }else if(angle > (3 / 2 * Math.PI)){
     point = quad_4_point(angle, start, length);
   }
   if(point == undefined){
