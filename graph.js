@@ -8,8 +8,10 @@ const MOVE_AMOUNT = 2;
 const ANGLE_BUFFER = 0.0;
 
 var shapes_;
-var keyPoints;
+var idPoints;
 var graph;
+
+var initShapes;
 
 function scriptDesc(){
   return 'Draw a graph';
@@ -25,7 +27,8 @@ function animate_graph(){
   const shouldClear = true;
   const initState = init();
   animation.animate(initState, render, frameLimit, fps, shouldClear);
-  keyPoints = key_points(initState.shapes);
+  initShapes = initState.shapes;
+  idPoints = id_points(initState.shapes);
 }
 
 function init(){
@@ -61,20 +64,20 @@ function arrange_shapes(graph, w, h){
   const xCenter = Math.floor(w/2);
   const yCenter = Math.floor(h/2);
   const p = {x: xCenter, y: yCenter};
-  const [originKey, ..._] = graph.keys();
-  const parentKey = undefined;
+  const [originId, ..._] = graph.keys();
+  const parentId = undefined;
   const parentPoint = undefined;
   const parentAngle = undefined;
-  const originVertex = {key: originKey,
-                        pkey: parentKey,
+  const originVertex = {id: originId,
+                        parent_id: parentId,
                         p0: parentPoint,
                         p1: p,
                         angle: parentAngle};
 
-  const state = {arranged_keys: [],
+  const state = {arranged_ids: [],
                  arranged_connections: [],
                  shapes: [],
-                 key_vertex_points: new Map([[originKey, p]]),
+                 id_vertex_points: new Map([[originId, p]]),
                  w: w,
                  h: h,
                  graph: graph}
@@ -87,19 +90,19 @@ function arrange_shapes_(state, vertices){
   if(vertices.length == 0){ return state; }
 
   const [vertex, ...rest] = vertices;
-  // const {key: key, pkey: pkey, p0: p0, p1: p1, angle: angle} = vertex;
-  const {key, pkey, p0, p1, angle} = vertex;
-  const nextVertices = next_vertices(key, p1, angle, rest, state);
+  // const {id: id, parent_id: parentId, p0: p0, p1: p1, angle: angle} = vertex;
+  const {id, parent_id: parentId, p0, p1, angle} = vertex;
+  const nextVertices = next_vertices(id, p1, angle, rest, state);
 
-  let newConnection = {p1: p0, p2: p1, k1: pkey, k2: key};
-  const vertexExists = state.arranged_keys.includes(key)
+  let newConnection = {p1: p0, p2: p1, k1: parentId, k2: id};
+  const vertexExists = state.arranged_ids.includes(id)
   if(!vertexExists){
-    state.arranged_keys.unshift(key);
-    state.shapes.unshift(vertex_shape(key, pkey, p1));
-    state.key_vertex_points.set(key, p1);
+    state.arranged_ids.unshift(id);
+    state.shapes.unshift(vertex_shape(id, parentId, p1));
+    state.id_vertex_points.set(id, p1);
   }else{
-    const preexistingVertexPoint = state.key_vertex_points.get(key);
-    newConnection = {p1: p0, p2: preexistingVertexPoint, k1: pkey, k2: key};
+    const preexistingVertexPoint = state.id_vertex_points.get(id);
+    newConnection = {p1: p0, p2: preexistingVertexPoint, k1: parentId, k2: id};
   }
 
   const isOriginVertex = p0 == undefined;
@@ -109,11 +112,11 @@ function arrange_shapes_(state, vertices){
     state.shapes.unshift(edge_shape(newConnection));
   }
 
-  const backConnections = back_connections(key, state);
+  const backConnections = back_connections(id, state);
   const backShapes = backConnections.map(edge_shape);
   state.shapes = backShapes.concat(state.shapes);
 
-  console.log(`${key} (${pkey}): ${state.graph.get(key).join()}`);
+  console.log(`${id} (${parentId}): ${state.graph.get(id).join()}`);
   console.log(`${state_to_string(state)}`);
   console.log(`${vertices_to_strings(nextVertices)}`);
   console.log('');
@@ -121,25 +124,25 @@ function arrange_shapes_(state, vertices){
   return arrange_shapes_(state, nextVertices);
 }
 
-function next_vertices(key, point, angle, vertices, state){
-  const siblingKeys = siblings(state.graph, key);
-  const unarrangedKeys = unarranged(siblingKeys, state.arranged_keys);
-  const unqueuedKeys = unqueued(unarrangedKeys, vertices);
-  const keyAngles = key_angles(unqueuedKeys, angle);
-  const siblingKeyAngles = zip(unqueuedKeys, keyAngles);
-  const vertexFun = vertex_fun(state.w, state.h, key, point);
-  const newVertices = map(vertexFun, siblingKeyAngles);
+function next_vertices(id, point, angle, vertices, state){
+  const siblingIds = siblings(state.graph, id);
+  const unarrangedIds = unarranged(siblingIds, state.arranged_ids);
+  const unqueuedIds = unqueued(unarrangedIds, vertices);
+  const idAngles = id_angles(unqueuedIds, angle);
+  const siblingIdAngles = zip(unqueuedIds, idAngles);
+  const vertexFun = vertex_fun(state.w, state.h, id, point);
+  const newVertices = map(vertexFun, siblingIdAngles);
   const nextVertices = vertices.concat(newVertices);
   return nextVertices;
 }
 
-function back_connections(key, state){
-  const siblingKeys = siblings(state.graph, key);
-  const arrangedKeys = arranged(siblingKeys, state.arranged_keys);
+function back_connections(id, state){
+  const siblingIds = siblings(state.graph, id);
+  const arrangedIds = arranged(siblingIds, state.arranged_ids);
   function connection_(k2){
-    return connection(k2, key, state);
+    return connection(k2, id, state);
   }
-  const connections = arrangedKeys.map(connection_);
+  const connections = arrangedIds.map(connection_);
   function exists(c1) {
     function connection_equals(c2){
       return points_equal(c1.p1, c2.p1) &&
@@ -152,12 +155,12 @@ function back_connections(key, state){
   return connections.filter(exists);
 }
 
-function connection(key1, key2, state){
-  const p1 = state.key_vertex_points.get(key1);
-  const p2 = state.key_vertex_points.get(key2);
+function connection(id1, id2, state){
+  const p1 = state.id_vertex_points.get(id1);
+  const p2 = state.id_vertex_points.get(id2);
   const p1s = p1 == undefined ? '_' : point_to_string(p1);
   const p2s = p2 == undefined ? '_' : point_to_string(p2);
-  return {p1: p1, p2: p2, k1: key1, k2: key2};
+  return {p1: p1, p2: p2, k1: id1, k2: id2};
 }
 
 
@@ -172,26 +175,26 @@ function points_equal(p1, p2){
   return p1.x == p2.x && p1.y == p2.y;
 }
 
-function vertex_fun(w, h, pkey, p0){
-  return function([key, angle]){
+function vertex_fun(w, h, parentId, p0){
+  return function([id, angle]){
     let {x: x, y: y} = point_from_angle(angle, p0, get_control_value('edge_length'));
-    return {key: key, pkey: pkey, p0: p0, p1: {x: Math.floor(x), y: Math.floor(y)}, angle: angle}
+    return {id: id, parent_id: parentId, p0: p0, p1: {x: Math.floor(x), y: Math.floor(y)}, angle: angle}
   }
 }
 
-function key_angles(keys, inAngle){
+function id_angles(ids, inAngle){
   let outAngles;
-  if(keys.length == 0){
+  if(ids.length == 0){
     outAngles = [];
   }else if(inAngle == undefined){
-    const numAngles = keys.length;
+    const numAngles = ids.length;
     const spreadAngle = 2 * Math.PI / numAngles
     outAngles = map(i => i * spreadAngle, seq(numAngles))
-  }else if(keys.length == 1){
+  }else if(ids.length == 1){
     outAngles = [inAngle];
   }else{
     const childSpread = get_control_value('child_spread');
-    const numAngles = keys.length;
+    const numAngles = ids.length;
     const halfSpread = childSpread / 2;
     const startAngle = inAngle - halfSpread;
     const spreadAngle = childSpread / numAngles
@@ -200,8 +203,8 @@ function key_angles(keys, inAngle){
   return outAngles;
 }
 
-function vertex_shape(key, pkey, p){
-  return {type: 'vertex', id: key, pkey: pkey, x: p.x, y: p.y};
+function vertex_shape(id, parentId, p){
+  return {type: 'vertex', id: id, parent_id: parentId, x: p.x, y: p.y};
 }
 
 function edge_shape({p1, p2, k1, k2}){
@@ -209,62 +212,62 @@ function edge_shape({p1, p2, k1, k2}){
   return {type: 'edge', id: edgeId, x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y, k1: k1, k2: k2};
 }
 
-function siblings(graph, key){
-  return graph.get(key);
+function siblings(graph, id){
+  return graph.get(id);
 }
 
-function arranged(keys, arranged){
+function arranged(ids, arranged){
   const f = k => arranged.includes(k);
-  let arrangedKeys = keys.filter(f);
-  return arrangedKeys;
+  let arrangedIds = ids.filter(f);
+  return arrangedIds;
 }
 
-function unarranged(keys, arranged){
+function unarranged(ids, arranged){
   const f = k => !arranged.includes(k);
-  let unarrangedKeys = keys.filter(f);
-  return unarrangedKeys;
+  let unarrangedIds = ids.filter(f);
+  return unarrangedIds;
 }
 
-function unqueued(keys, queuedVertices){
-  const queuedKeys = queuedVertices.map(v => v.key);
-  const f = (k => !queuedKeys.includes(k));
-  const unqueuedKeys = keys.filter(f);
-  return unqueuedKeys;
+function unqueued(ids, queuedVertices){
+  const queuedIds = queuedVertices.map(v => v.id);
+  const f = (k => !queuedIds.includes(k));
+  const unqueuedIds = ids.filter(f);
+  return unqueuedIds;
 
 }
 
-function siblings_sorted_by_connections(graph, key){
-  return unique_concat(sorted_connected_siblings(graph, key), siblings);
+function siblings_sorted_by_connections(graph, id){
+  return unique_concat(sorted_connected_siblings(graph, id), siblings);
 }
 
-function sorted_connected_siblings(graph, key){
+function sorted_connected_siblings(graph, id){
   let reducer = function(conn, siblings){
     let connSiblings = conn.split('-').map(i => parseInt(i))
     return unique_concat(siblings, connSiblings);
   }
-  let orderedConnectedSiblings = get_sibling_connections(graph, key).sort().reduce(reducer, []);
+  let orderedConnectedSiblings = get_sibling_connections(graph, id).sort().reduce(reducer, []);
 }
 
 function unique_concat(arr1, arr2){
   return arr1.concat(arr2.filter(i => !arr1.includes(i)));
 }
 
-function get_sibling_connections(graph, key){
-  let acc = {'connections': new Set(), 'siblings': graph[key]};
-  return graph[key].reduce(add_sibling_connections, acc);
+function get_sibling_connections(graph, id){
+  let acc = {'connections': new Set(), 'siblings': graph[id]};
+  return graph[id].reduce(add_sibling_connections, acc);
 }
 
-function add_sibling_connections(acc, key1){
-  let reducer = function (acc, key2) {
-    add_unique_conn_strings(acc, key1, key2);
+function add_sibling_connections(acc, id1){
+  let reducer = function (acc, id2) {
+    add_unique_conn_strings(acc, id1, id2);
   }
-  filter = key => acc.siblings.includes(key);
-  return graph[key].filter(filter).reduce(reducer, acc);
+  filter = id => acc.siblings.includes(id);
+  return graph[id].filter(filter).reduce(reducer, acc);
 }
 
-function add_unique_conn_strings(acc, key1, key2){
-  let [minKey, maxKey] = [key1, key2].sort();
-  return connections.add(`${minKey}-${maxKey}`);
+function add_unique_conn_strings(acc, id1, id2){
+  let [minId, maxId] = [id1, id2].sort();
+  return connections.add(`${minId}-${maxId}`);
 }
 
 function locate_point(state, parentPoint){
@@ -330,11 +333,11 @@ function apply_edge_moves(shapes, move){
   return shapes3.concat(newShapes);
 }
 
-function move_vertex({id, pkey, x, y}, {angle}){
+function move_vertex({id, parent_id: parentId, x, y}, {angle}){
   const moveAmount = get_control_value('move_amount');
   const point = point_from_angle(angle, {x: x, y: y}, moveAmount);
   //console.log(`Moving vertex ${id} from ${x},${y} by ${rnd(angle)},${moveAmount} to ${rnd(point.x)},${rnd(point.y)}`);
-  return vertex_shape(id, pkey, point);
+  return vertex_shape(id, parentId, point);
 }
 
 function move_edge({k1, k2, x1, y1, x2, y2}, {id, x, y}){
@@ -677,20 +680,20 @@ function point_delta({x: x1, y: y1}, {x: x2, y: y2}){
 }
 
 function state_to_string(state){
-  const keys = state.arranged_keys.join();
-  const kvps = [...state.key_vertex_points.entries()].map(kvp_to_string).join();
+  const ids = state.arranged_ids.join();
+  const kvps = [...state.id_vertex_points.entries()].map(kvp_to_string).join();
   const conns = state.arranged_connections.map(connection_to_string).join();
   const shapes = state.shapes.map(shape_to_string).join();
 
-  return `k: [${keys}]
+  return `k: [${ids}]
 p: [${kvps}]
 c: [${conns}]
 s: [${shapes}]`;
 }
 
-function kvp_to_string([key, point]){
+function kvp_to_string([id, point]){
   const pointString = point == undefined ? '_' : point_to_string(point);
-  return `{${key}, ${pointString}}`;
+  return `{${id}, ${pointString}}`;
 }
 
 function shape_to_string(shape){
@@ -701,9 +704,9 @@ function shape_to_string(shape){
   }
 }
 
-function vertex_shape_to_string({id, pkey, x, y}){
+function vertex_shape_to_string({id, parentId, x, y}){
   const point = {x: x, y: y};
-  return `{vs:${id},${pkey},${point_to_string(point)}}`;
+  return `{vs:${id},${parentId},${point_to_string(point)}}`;
 }
 
 function edge_shape_to_string({id, x1, y1, x2, y2, k1, k2}){
@@ -716,14 +719,14 @@ function vertices_to_strings(vertices){
   return `v: ${vertices.map(vertex_to_string).join()}`;
 }
 
-function vertex_to_string({key, pkey, p0, p1, angle}){
+function vertex_to_string({id, parentId, p0, p1, angle}){
   const angleString = angle.toString().substr(0,5);
   let p0s = '[undef]';
   if(p0 != undefined){
     p0s = point_to_string(p0);
   }
   const p1s = point_to_string(p1);
-  return `{v:${key},${pkey},${p0s},${p1s},<${angleString}}`;
+  return `{v:${id},${parentId},${p0s},${p1s},<${angleString}}`;
 }
 
 function connection_to_string({p1, p2, k1, k2}){
@@ -764,8 +767,9 @@ function is_bounded(bound1, bound2, maybeBounded, radius){
   return isBounded;
 }
 
-function key_points(shapes){
+function id_points(shapes){
   let map = new Map();
-  let f = ({key, x, y}) => {map.set(key, {x: x, y: y})};
-  return shapes.filter(is_vertex).map(f);
+  let f = ({id, x, y}) => {map.set(id, {x: x, y: y})};
+  shapes.filter(is_vertex).map(f);
+  return map;
 }
