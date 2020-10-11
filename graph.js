@@ -36,13 +36,33 @@ function animate_graph(){
 }
 
 function init(){
+  const {h, w} = canvas_details();
+  let graph = GRAPH;
+
+  if(typeof(testLogs) != 'undefined'){
+    graph = graph_from_links(link_events(testLogs));
+  }
+
+  const {shapes} = arrange_shapes(graph, w, h);
+  const renderingState = {h: h, w: w, frame: 0, shapes: shapes};
+  return renderingState;
+}
+
+function canvas_details(){
   const c = elem('canvas1');
   const ctx = c.getContext('2d');
   const h = c.height;
   const w = c.width;
-  const {shapes} = arrange_shapes(GRAPH, c.width, c.height);
-  const renderingState = {h: h, w: w, frame: 0, shapes: shapes};
-  return renderingState;
+  return {c: c, ctx: ctx, h: h, w: w};
+}
+
+function draw_next_message(){
+  const {ctx} = canvas_details();
+  let log = testLogs.shift();
+
+  const message = drawable_event(log);
+
+  draw_log(ctx, drawableLog);
 }
 
 function arrange_shapes(graph, w, h){
