@@ -24,6 +24,7 @@ var keyPoints;
 var logs;
 var graph;
 
+function scriptDesc(){
   return 'Draw a graph';
 }
 
