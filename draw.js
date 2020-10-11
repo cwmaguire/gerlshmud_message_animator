@@ -27,8 +27,8 @@ function draw_vertex(ctx, vertex){
   ctx.closePath();
   ctx.fill();
 
-  const textOffsetX = vertex.x - radius / 2 - 4;
-  const textOffsetY = vertex.y + radius / 2 - 2;
+  const textOffsetX = vertex.x - radius / 2 - 1;
+  const textOffsetY = vertex.y + radius / 2 - 4;
   ctx.fillStyle = 'white';
   ctx.font = '8pt serif';
   ctx.fillText(vertex.id, textOffsetX, textOffsetY);

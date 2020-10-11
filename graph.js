@@ -1,6 +1,6 @@
 "use strict";
 
-const VERTEX_RADIUS = 25;
+const VERTEX_RADIUS = 15;
 const VERTEX_BUFFER_RATIO = 10;
 const EDGE_LENGTH = 20;
 const CHILD_SPREAD = 0.75 * Math.PI;
