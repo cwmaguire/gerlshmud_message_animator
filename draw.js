@@ -27,7 +27,7 @@ function draw_vertex(ctx, vertex){
   ctx.closePath();
   ctx.fill();
 
-  const textOffsetX = vertex.x - radius / 2 + 2;
+  const textOffsetX = vertex.x - radius / 2 - 4;
   const textOffsetY = vertex.y + radius / 2 - 2;
   ctx.fillStyle = 'white';
   ctx.font = '8pt serif';
@@ -52,3 +52,16 @@ function draw_edge(ctx, edge){
   ctx.fillText(edge.id, textOffsetX, textOffsetY);
 }
 
+function draw_event(ctx, message){
+  ctx.strokeStyle = 'black';
+
+  ctx.strokeRect(message.x, message.y, message.w, message.h);
+
+  const textOffsetX = x + 10;
+  const textOffsetY = y + 10;
+  //console.log(`Width: ${width}, textOffsetX: ${textOffsetX}, height: ${height}, textOffsetY: ${textOffsetY}`);
+  ctx.fillStyle = 'black';
+  ctx.font = '8pt serif';
+  ctx.fillText(key, textOffsetX, textOffsetY);
+
+}
