@@ -791,9 +791,50 @@ function add_link(map, {source, target}){
   return map
 }
 
+function has_target(map, source, target){
+  return map.get(source).includes(target);
+}
+
+function filter_logs(logs){
+  let filters = [has_type, not_link, not_populate];
+  return filters.reduce(apply_filter, logs);
+}
+
+function apply_filter(acc, filter){
+  return acc.filter(filter);
+}
+
+function has_type(obj){
+  return obj.hasOwnProperty('event_type');
+}
+
+function not_link(obj){
+  return !is_link(obj);
+}
+
+function is_link(obj){
+  return obj.hasOwnProperty('event_type') && obj.event_type == 'link';
+}
+
+function not_populate(obj){
+  return !obj.hasOwnProperty('event_type') || obj.event_type != 'populate';
+}
+
+function link_events(logs){
+  return logs.filter(is_link).map(format_link);
+}
+
 function key_points(shapes){
   let map = new Map();
   let f = ({key, x, y}) => {map.set(key, {x: x, y: y})};
   return shapes.filter(is_vertex).map(f);
+}
+
+function drawable_event({pid, process}){
+  if(pid == undefined){
+    pid = process;
+  }
+  const point = keyPoints.get(pid);
+  return {pid: pid, point: point};
 }
 }
