@@ -101,7 +101,8 @@ function arrange_shapes_(state, vertices){
   if(vertices.length == 0){ return state; }
 
   const [vertex, ...rest] = vertices;
-  const {key: key, pkey: pkey, p0: p0, p1: p1, angle: angle} = vertex;
+  // const {key: key, pkey: pkey, p0: p0, p1: p1, angle: angle} = vertex;
+  const {key, pkey, p0, p1, angle} = vertex;
   const nextVertices = next_vertices(key, p1, angle, rest, state);
 
   let newConnection = {p1: p0, p2: p1, k1: pkey, k2: key};
