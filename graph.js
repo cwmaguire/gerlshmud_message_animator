@@ -38,6 +38,7 @@ function animate_graph(){
   const shouldClear = true;
   const initState = init();
   animation.animate(initState, render, frameLimit, fps, shouldClear);
+  keyPoints = key_points(initState.shapes);
 }
 
 function init(){
@@ -774,4 +775,10 @@ function is_bounded(bound1, bound2, maybeBounded, radius){
   //console.log(`is bounded: ${isBounded}`);
 
   return isBounded;
+
+function key_points(shapes){
+  let map = new Map();
+  let f = ({key, x, y}) => {map.set(key, {x: x, y: y})};
+  return shapes.filter(is_vertex).map(f);
+}
 }
