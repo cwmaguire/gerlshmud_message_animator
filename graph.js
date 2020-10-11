@@ -776,6 +776,20 @@ function is_bounded(bound1, bound2, maybeBounded, radius){
   //console.log(`is bounded: ${isBounded}`);
 
   return isBounded;
+}
+
+function graph_from_links(links){
+  return links.reduce(add_link, new Map());
+}
+
+function add_link(map, {source, target}){
+  if(map.has(source) && !has_target(map, source, target)){
+    map.get(source).push(target);
+  }else if(!map.has(source)){
+    map.set(source, [target]);
+  }
+  return map
+}
 
 function key_points(shapes){
   let map = new Map();
