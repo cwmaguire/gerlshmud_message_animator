@@ -1,4 +1,4 @@
-var testLogs = [
+var events = [
 {"stage":"none","source":"<0.349.0>","source_id":"room","source_icon":"room","pid":"<0.349.0>","pid_id":"room","pid_icon":"room","object":"<0.349.0>","object_id":"room","object_icon":"room","id":"room","icon":"room","handlers":["gerlshmud_handler_room_inject_self","gerlshmud_handler_room_inv","gerlshmud_handler_room_look","gerlshmud_handler_room_move","gerlshmud_handler_set_child_property"],"event_type":"populate","character":"zombie","module":"gerlshmud_object","level":"debug","process":"<0.349.0>","process_id":"room","process_icon":"room"},
 {"target":"<0.351.0>","target_id":"player","target_icon":"person","source":"<0.349.0>","source_id":"room","source_icon":"room","event_type":"link","module":"gerlshmud_object","level":"debug","process":"<0.349.0>","process_id":"room","process_icon":"room"},
 {"target":"<0.365.0>","target_id":"zombie","target_icon":"person","source":"<0.349.0>","source_id":"room","source_icon":"room","event_type":"link","module":"gerlshmud_object","level":"debug","process":"<0.349.0>","process_id":"room","process_icon":"room"},

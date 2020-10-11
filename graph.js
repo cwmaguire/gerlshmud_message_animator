@@ -7,21 +7,8 @@ const CHILD_SPREAD = 0.75 * Math.PI;
 const MOVE_AMOUNT = 2;
 const ANGLE_BUFFER = 0.0;
 
-const GRAPH = new Map([[1, [2, 3, 4, 6]],
-                       [2, [1, 3]],
-                       [3, [1, 2, 7]],
-                       [4, [1, 5, 7]],
-                       [5, [4, 6, 7]],
-                       [6, [1, 5]],
-                       [7, [3, 4, 5, 8, 9, 10]],
-                       [8, [7]],
-                       [9, [7]],
-                       [10, [6, 7]],
-                      ]);
-
 var shapes_;
 var keyPoints;
-var logs;
 var graph;
 
 function scriptDesc(){
@@ -43,10 +30,9 @@ function animate_graph(){
 
 function init(){
   const {h, w} = canvas_details();
-  let graph = GRAPH;
 
-  if(typeof(testLogs) != 'undefined'){
-    graph = graph_from_links(link_events(testLogs));
+  if(typeof(events) != 'undefined'){
+    graph = graph_from_links(link_events(events));
   }
 
   const {shapes} = arrange_shapes(graph, w, h);
@@ -62,13 +48,13 @@ function canvas_details(){
   return {c: c, ctx: ctx, h: h, w: w};
 }
 
-function draw_next_message(){
+function draw_next_event(){
   const {ctx} = canvas_details();
-  let log = testLogs.shift();
+  let event = events.shift();
 
-  const message = drawable_event(log);
+  const drawableEvent = drawable_event(event);
 
-  draw_log(ctx, drawableLog);
+  draw_event(ctx, drawableEvent);
 }
 
 function arrange_shapes(graph, w, h){
@@ -778,72 +764,8 @@ function is_bounded(bound1, bound2, maybeBounded, radius){
   return isBounded;
 }
 
-function graph_from_links(links){
-  return links.reduce(add_link, new Map());
-}
-
-function add_link(map, {source, target}){
-  if(map.has(source) && !has_target(map, source, target)){
-    map.get(source).push(target);
-  }else if(!map.has(source)){
-    map.set(source, [target]);
-  }
-  return map
-}
-
-function has_target(map, source, target){
-  return map.get(source).includes(target);
-}
-
-function filter_logs(logs){
-  let filters = [has_type, not_link, not_populate];
-  return filters.reduce(apply_filter, logs);
-}
-
-function apply_filter(acc, filter){
-  return acc.filter(filter);
-}
-
-function has_type(obj){
-  return obj.hasOwnProperty('event_type');
-}
-
-function not_link(obj){
-  return !is_link(obj);
-}
-
-function is_link(obj){
-  return obj.hasOwnProperty('event_type') && obj.event_type == 'link';
-}
-
-function not_populate(obj){
-  return !obj.hasOwnProperty('event_type') || obj.event_type != 'populate';
-}
-
-function link_events(logs){
-  return logs.filter(is_link).map(format_link);
-}
-
 function key_points(shapes){
   let map = new Map();
   let f = ({key, x, y}) => {map.set(key, {x: x, y: y})};
   return shapes.filter(is_vertex).map(f);
-}
-
-function drawable_event({pid, process}){
-  if(pid == undefined){
-    pid = process;
-  }
-  const point = keyPoints.get(pid);
-  return {pid: pid, point: point};
-}
-
-function strip_pid(pid){
-  let re = /<0\.(\d+)\.0>/;
-  let match = re.exec(pid);
-  return match[1];
-}
-
-function format_link({source, target}){
-  return {source: strip_pid(source), target: strip_pid(target)};
 }
