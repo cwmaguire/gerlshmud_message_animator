@@ -837,4 +837,13 @@ function drawable_event({pid, process}){
   const point = keyPoints.get(pid);
   return {pid: pid, point: point};
 }
+
+function strip_pid(pid){
+  let re = /<0\.(\d+)\.0>/;
+  let match = re.exec(pid);
+  return match[1];
+}
+
+function format_link({source, target}){
+  return {source: strip_pid(source), target: strip_pid(target)};
 }
