@@ -75,7 +75,7 @@ function arrange_shapes(graph, w, h){
   const xCenter = Math.floor(w/2);
   const yCenter = Math.floor(h/2);
   const p = {x: xCenter, y: yCenter};
-  const [originKey] = graph.keys();
+  const [originKey, ..._] = graph.keys();
   const parentKey = undefined;
   const parentPoint = undefined;
   const parentAngle = undefined;
