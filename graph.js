@@ -19,7 +19,11 @@ const GRAPH = new Map([[1, [2, 3, 4, 6]],
                        [10, [6, 7]],
                       ]);
 
-function scriptDesc(){
+var shapes_;
+var keyPoints;
+var logs;
+var graph;
+
   return 'Draw a graph';
 }
 
@@ -294,6 +298,7 @@ function add_shapes(state, shapes){
 
 function render({context: ctx, state: {h, w, frame, shapes}}){
   const shapes2 = spread_shapes(shapes);
+  shapes_ = shapes2;
 
   function draw_shape_(shape){
     draw_shape(ctx, shape);
