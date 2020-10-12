@@ -52,16 +52,16 @@ function draw_edge(ctx, edge){
   ctx.fillText(edge.id, textOffsetX, textOffsetY);
 }
 
-function draw_event(ctx, message){
+function draw_event(ctx, {id, x, y, w, h}){
   ctx.strokeStyle = 'black';
 
-  ctx.strokeRect(message.x, message.y, message.w, message.h);
+  ctx.strokeRect(x, y, w, h);
 
   const textOffsetX = x + 10;
   const textOffsetY = y + 10;
   //console.log(`Width: ${width}, textOffsetX: ${textOffsetX}, height: ${height}, textOffsetY: ${textOffsetY}`);
   ctx.fillStyle = 'black';
   ctx.font = '8pt serif';
-  ctx.fillText(key, textOffsetX, textOffsetY);
+  ctx.fillText(id, textOffsetX, textOffsetY);
 
 }
