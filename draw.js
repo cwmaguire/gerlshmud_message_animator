@@ -65,3 +65,23 @@ function draw_event(ctx, {id, x, y, w, h}){
   ctx.fillText(id, textOffsetX, textOffsetY);
 
 }
+
+function draw_move_line(ctx, p1, p2){
+  ctx.strokeStyle = 'red';
+  ctx.beginPath();
+  ctx.moveTo(p1.x, p1.y);
+  ctx.lineTo(p2.x, p2.y);
+  ctx.closePath();
+  ctx.stroke();
+
+  const radius = 2;
+  const rotation = 0;
+  const startAngle = 0;
+  const endAngle = Math.PI * 2;
+
+  ctx.fillStyle = 'red';
+  ctx.beginPath();
+  ctx.ellipse(p2.x, p2.y, radius, radius, rotation, startAngle, endAngle);
+  ctx.closePath();
+  ctx.fill();
+}

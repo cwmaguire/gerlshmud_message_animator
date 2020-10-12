@@ -39,7 +39,7 @@ function init(){
   }
 
   const {shapes} = arrange_shapes(graph, w, h);
-  const renderingState = {h: h, w: w, frame: 0, shapes: shapes};
+  const renderingState = {h: h, w: w, frame: 0, shapes: shapes, moves: undefined};
   return renderingState;
 }
 
@@ -53,7 +53,7 @@ function canvas_details(){
 
 function draw_next_event(){
   const {ctx} = canvas_details();
-  let event = events.shift();
+  let event = events_.shift();
 
   const drawableEvent = drawable_event(event);
 
@@ -270,35 +270,48 @@ function add_unique_conn_strings(acc, id1, id2){
   return connections.add(`${minId}-${maxId}`);
 }
 
-function locate_point(state, parentPoint){
-  let point;
-  if(state.angle == undefined){
-    let x = state.w / 2;
-    let y = state.y / 2;
-    point = {type: 'point', x: x, y: y}
-  }else{
-    point = point_from_angle(state.angle, parentPoint);
-  }
-
-  return point;
-}
-
 function add_shapes(state, shapes){
   newShapes = state.shapes.concat(shapes);
   return {shapes: newShapes};
 }
 
-function render({context: ctx, state: {h, w, frame, shapes}}){
-  const shapes2 = spread_shapes(shapes);
-  shapes_ = shapes2;
+function render(params){
+  if(undef(params.state.moves)){
+    return render_moves(params);
+  }else{
+    return render_shapes(params);
+  }
+}
 
+function render_shapes({context: ctx, state: {h, w, frame, shapes}}){
+  render_shapes_(ctx, shapes);
+  return {h: h, w: w, frame: frame, shapes: shapes, moves: undefined};
+}
+
+function render_moves({context: ctx, state: {h, w, frame, shapes}}){
+  const {moves, shapes: spreadShapes} = spread_shapes(shapes);
+  render_shapes_(ctx, shapes);
+  render_moves_(ctx, moves, shapes);
+  return {h: h, w: w, frame: frame, shapes: spreadShapes, moves: moves};
+}
+
+function render_shapes_(ctx, shapes){
   function draw_shape_(shape){
     draw_shape(ctx, shape);
   }
+  shapes.filter(is_edge).map(draw_shape_);
+  shapes.filter(is_vertex).map(draw_shape_);
+}
 
-  shapes2.filter(is_edge).map(draw_shape_);
-  shapes2.filter(is_vertex).map(draw_shape_);
-  return {h: h, w: w, frame: frame, shapes: shapes2};
+function render_moves_(ctx, moves, shapes){
+  moves.map(({moves}) => moves.map(move => render_move(ctx, move, shapes)));
+}
+
+function render_move(ctx, {v: vId, angle}, shapes){
+  const isVertexFun = ({type, id}) => type == 'vertex' && id == vId;
+  const [vertex, ..._] = shapes.filter(isVertexFun);
+  const movedPoint = move_point(angle, vertex);
+  draw_move_line(ctx, {x: vertex.x, y: vertex.y}, movedPoint);
 }
 
 function is_edge({type}){
@@ -312,7 +325,7 @@ function is_vertex({type}){
 function spread_shapes(shapes){
   const vertices = shapes.filter(({type}) => type == 'vertex');
   const moves = flatten(vertices.map(v => get_moves(shapes, v)));
-  return moves.reduce(apply_move, shapes);
+  return {moves: moves, shapes: moves.reduce(apply_move, shapes)};
 }
 
 function apply_move(shapes, {edge, moves}){
@@ -334,11 +347,15 @@ function apply_edge_moves(shapes, move){
 }
 
 function move_vertex({id, parent_id: parentId, x, y}, {angle}){
-  const moveAmount = get_control_value('move_amount');
-  const point = point_from_angle(angle, {x: x, y: y}, moveAmount);
+  const movedPoint = move_point(angle, {x: x, y: y});
   //console.log(`Moving vertex ${id} from ${x},${y} by ${rnd(angle)},${moveAmount} to ${rnd(point.x)},${rnd(point.y)}`);
-  idPoints.set(id, point);
-  return vertex_shape(id, parentId, point);
+  idPoints.set(id, movedPoint);
+  return vertex_shape(id, parentId, movedPoint);
+}
+
+function move_point(angle, p){
+  const moveAmount = get_control_value('move_amount');
+  return point_from_angle(angle, p, moveAmount);
 }
 
 function move_edge({k1, k2, x1, y1, x2, y2}, {id, x, y}){
@@ -352,8 +369,8 @@ function move_edge({k1, k2, x1, y1, x2, y2}, {id, x, y}){
 }
 
 function remove_edges(vertexId, shapes){
-  function is_matching_edge(shape){
-    return shape.type == 'edge' && (shape.k1 == vertexId || shape.k2 == vertexId);
+  function is_matching_edge({type, k1, k2}){
+    return type == 'edge' && (k1 == vertexId || k2 == vertexId);
   }
   function is_not_matching_edge(shape){
     return !is_matching_edge(shape);
@@ -365,8 +382,8 @@ function remove_edges(vertexId, shapes){
 }
 
 function remove_vertex(vertexId, shapes){
-  function is_matching_vertex(shape){
-    return shape.type == 'vertex' && shape.id == vertexId;
+  function is_matching_vertex({type, id}){
+    return type == 'vertex' && id == vertexId;
   }
   function is_not_matching_vertex(shape){
     return !is_matching_vertex(shape);
