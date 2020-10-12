@@ -105,7 +105,7 @@ function arrange_shapes_(state, vertices){
     newConnection = {p1: p0, p2: preexistingVertexPoint, k1: parentId, k2: id};
   }
 
-  const isOriginVertex = p0 == undefined;
+  const isOriginVertex = undef(p0);
   const connectionExists = does_connection_exist(state.arranged_connections, newConnection);
   if(!isOriginVertex && !connectionExists){
     state.arranged_connections.unshift(newConnection);
@@ -158,8 +158,8 @@ function back_connections(id, state){
 function connection(id1, id2, state){
   const p1 = state.id_vertex_points.get(id1);
   const p2 = state.id_vertex_points.get(id2);
-  const p1s = p1 == undefined ? '_' : point_to_string(p1);
-  const p2s = p2 == undefined ? '_' : point_to_string(p2);
+  const p1s = undef(p1) ? '_' : point_to_string(p1);
+  const p2s = undef(p2) ? '_' : point_to_string(p2);
   return {p1: p1, p2: p2, k1: id1, k2: id2};
 }
 
@@ -186,7 +186,7 @@ function id_angles(ids, inAngle){
   let outAngles;
   if(ids.length == 0){
     outAngles = [];
-  }else if(inAngle == undefined){
+  }else if(undef(inAngle)){
     const numAngles = ids.length;
     const spreadAngle = 2 * Math.PI / numAngles
     outAngles = map(i => i * spreadAngle, seq(numAngles))
@@ -399,7 +399,7 @@ function get_moves(shapes, v1){
     const moves = otherVertices.map(calc_overlap_moves_);
     //console.log(`moves ${v1.id}-${v2.id}: ${moves.map(move_to_string)}`);
 
-    const validMoves = moves.filter(m => m != undefined);
+    const validMoves = moves.filter(m => !undef(m));
     //console.log(`valid moves ${v1.id}-${v2.id}: ${validMoves.map(move_to_string)}`);
 
     return {edge: edge, moves: validMoves};
@@ -693,7 +693,7 @@ s: [${shapes}]`;
 }
 
 function kvp_to_string([id, point]){
-  const pointString = point == undefined ? '_' : point_to_string(point);
+  const pointString = undef(point) ? '_' : point_to_string(point);
   return `{${id}, ${pointString}}`;
 }
 
@@ -723,7 +723,7 @@ function vertices_to_strings(vertices){
 function vertex_to_string({id, parentId, p0, p1, angle}){
   const angleString = angle.toString().substr(0,5);
   let p0s = '[undef]';
-  if(p0 != undefined){
+  if(!undef(p0)){
     p0s = point_to_string(p0);
   }
   const p1s = point_to_string(p1);
@@ -731,11 +731,15 @@ function vertex_to_string({id, parentId, p0, p1, angle}){
 }
 
 function connection_to_string({p1, p2, k1, k2}){
-  const k1s = k1 == undefined ? '_' : k1;
-  const k2s = k2 == undefined ? '_' : k2;
-  const p1s = p1 == undefined ? '_' : point_to_string(p1);
-  const p2s = p2 == undefined ? '_' : point_to_string(p2);
+  const k1s = undef(k1) ? '_' : k1;
+  const k2s = undef(k2) ? '_' : k2;
+  const p1s = undef(p1) ? '_' : point_to_string(p1);
+  const p2s = undef(p2) ? '_' : point_to_string(p2);
   return `{${k1s}->${k2s}|${p1s}->${p2s}}`;
+}
+
+function undef(x){
+  return typeof(x) == 'undefined';
 }
 
 function point_to_string({x, y}){
