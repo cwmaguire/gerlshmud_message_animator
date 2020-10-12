@@ -11,6 +11,7 @@ var shapes_;
 var idPoints = new Map();
 var graph;
 var initShapes;
+var events_;
 
 function scriptDesc(){
   return 'Draw a graph';
@@ -21,6 +22,7 @@ function should_clear(){
 }
 
 function animate_graph(){
+  events_ = events;
   const fps = cast(elem('fps').value, 'int');
   const frameLimit = cast(elem('frameLimit').value, 'int');
   const shouldClear = true;
@@ -32,8 +34,8 @@ function animate_graph(){
 function init(){
   const {h, w} = canvas_details();
 
-  if(typeof(events) != 'undefined'){
-    graph = graph_from_links(link_events(events));
+  if(!undef(events_)){
+    graph = graph_from_links(link_events(events_));
   }
 
   const {shapes} = arrange_shapes(graph, w, h);
