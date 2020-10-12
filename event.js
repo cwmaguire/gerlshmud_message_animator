@@ -50,8 +50,9 @@ function drawable_event({pid, process}){
   if(pid == undefined){
     pid = process;
   }
-  const point = keyPoints.get(pid);
-  return {pid: pid, point: point};
+  pid = strip_pid(pid);
+  const {x, y} = idPoints.get(pid);
+  return {id: pid, x: x, y: y, w: 20, h: 20};
 }
 
 function strip_pid(pid){
