@@ -8,9 +8,8 @@ const MOVE_AMOUNT = 2;
 const ANGLE_BUFFER = 0.0;
 
 var shapes_;
-var idPoints;
+var idPoints = new Map();
 var graph;
-
 var initShapes;
 
 function scriptDesc(){
@@ -28,7 +27,6 @@ function animate_graph(){
   const initState = init();
   animation.animate(initState, render, frameLimit, fps, shouldClear);
   initShapes = initState.shapes;
-  idPoints = id_points(initState.shapes);
 }
 
 function init(){
@@ -337,6 +335,7 @@ function move_vertex({id, parent_id: parentId, x, y}, {angle}){
   const moveAmount = get_control_value('move_amount');
   const point = point_from_angle(angle, {x: x, y: y}, moveAmount);
   //console.log(`Moving vertex ${id} from ${x},${y} by ${rnd(angle)},${moveAmount} to ${rnd(point.x)},${rnd(point.y)}`);
+  idPoints.set(id, point);
   return vertex_shape(id, parentId, point);
 }
 
